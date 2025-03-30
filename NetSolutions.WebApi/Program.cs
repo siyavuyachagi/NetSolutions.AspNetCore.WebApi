@@ -1,0 +1,149 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using NetSolutions.Services;
+using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Models.Domain;
+using System.Text;
+using System.Text.Json.Serialization; // Add this using directive
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+//✅ Configure JSON serialization to ignore reference loops and not include related entities by default
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Ignore cycles in object graphs
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // Set default behavior to ignore entity references unless explicitly included
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+//✅ Register DBContext
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("DefaultConnection not found!");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    //options.UseSqlite("Data Source=./Data/data.db", sqliteOptionsAction =>
+    //{
+    //    sqliteOptionsAction.MigrationsAssembly("NetSolutions.WebApi");
+    //});
+    options.UseSqlServer(connectionString, sqlServerOptionsAction =>
+    {
+        sqlServerOptionsAction.EnableRetryOnFailure(3);
+        sqlServerOptionsAction.MigrationsAssembly("NetSolutions.WebApi");
+    });
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+    // Disable this warning in development for data generation
+    options.ConfigureWarnings(warnings =>
+    {
+        warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
+    });
+});
+
+//✅Add Identity services
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+//✅Bind BusinessProfile from appsettings.json
+var businessProfile = builder.Configuration.GetSection(nameof(BusinessProfile)).Get<BusinessProfile>() ?? throw new NullReferenceException("BusinessProfile cannot be null");
+builder.Services.AddSingleton(businessProfile);
+
+
+//✅Add Authentication services
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? throw new NullReferenceException("JwtSettings cannot be null");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Environment.IsDevelopment() ? jwtSettings.Issuers[0] : jwtSettings.Issuers[1],
+        ValidAudience = builder.Environment.IsDevelopment() ? jwtSettings.Audiences[0] : jwtSettings.Audiences[1],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+    };
+});
+
+//✅ Add Authorization Middleware
+builder.Services.AddAuthorization();
+
+//✅ Register/Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNetSolutionOrigins",
+        builder => builder.WithOrigins(jwtSettings.Audiences)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials());
+});
+
+
+//✅ SmtpSettings as a Singleton to use it out of the box
+builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(SmtpSettings)).Get<SmtpSettings>() ?? throw new Exception("Error registering SmtpSettings"));
+//✅ Register EmailSender service
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+//✅ Register JWT service
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));//Register JWT settings using the Options Pattern
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);//Register JwtSettings as a singleton for direct access if needed
+builder.Services.AddScoped<IJasonWebToken, JasonWebToken>();
+
+//✅ Register GoogleDrive service
+builder.Services.Configure<GoogleDriveCredentials>(builder.Configuration.GetSection("GoogleDriveCredentials"));// Bind GoogleDriveCredentials from appsettings.json
+builder.Services.AddSingleton<IGoogleDrive, GoogleDrive>();
+
+//✅ Register custom ilogger
+builder.Services.AddScoped<ILogService, LogService>();
+
+//✅ Register localFileManager service
+builder.Services.AddScoped<ILocalFileManager, LocalFileManager>();
+
+//✅ Register HttpClient service
+builder.Services.AddHttpClient();
+
+//✅ Register PayFast service
+var payFastCreds = builder.Configuration.GetSection("PayFastCreds").Get<PayFastCreds>() ?? throw new InvalidOperationException("Failed to register PayFastCreds");
+builder.Services.AddSingleton(payFastCreds);
+builder.Services.AddScoped<IPayFast, PayFast>();
+
+
+var app = builder.Build();
+
+// ✅ Serve static files before controllers
+app.UseStaticFiles();
+
+app.UseHttpsRedirection();
+
+app.UseCors("AllowNetSolutionOrigins");
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+// ✅ Swagger for development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.Run();
+

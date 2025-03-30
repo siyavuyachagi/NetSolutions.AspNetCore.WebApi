@@ -1,0 +1,6 @@
+@NetSolutions.WebApi_HostAddress = http://localhost:5089
+
+GET {{NetSolutions.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

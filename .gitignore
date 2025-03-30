@@ -1,0 +1,72 @@
+# Visual Studio & Rider
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.nupkg
+*.snupkg
+*.log
+
+# ASP.NET Core config files
+appsettings*.json
+
+# Entity Framework Migrations
+Migrations/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nuget.props
+*.nuget.targets
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Logs & Debugging
+logs/
+*.log
+*.tlog
+*.cache
+*.pfx
+
+# Azure & Deployment
+Azure/
+wwwroot/
+publish/
+*.pubxml
+*.publishsettings
+
+# Node & Frontend
+node_modules/
+dist/
+npm-debug.log
+
+# Docker
+Dockerfile
+docker-compose*
+.env
+
+# Resharper
+*.DotSettings.user
+_ReSharper.Caches/
+
+# MacOS/Linux
+.DS_Store
+*.swp
