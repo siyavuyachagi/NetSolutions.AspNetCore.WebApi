@@ -107,6 +107,8 @@ public class SolutionsController : ControllerBase
         {
             var solutions = await _context.Solutions
                 .AsNoTrackingWithIdentityResolution()
+                .Include(s => s.TechnologyStacks)
+                .ThenInclude(ts => ts.TechnologyStack)
                 .Include(s => s.Reviews)
                 .ThenInclude(r => r.Review.Evaluator)
                 .Where(s => s.Id == Id)
@@ -124,10 +126,12 @@ public class SolutionsController : ControllerBase
                     s.CreatedAt,
                     s.UpdatedAt,
                     Features = s.SolutionFeatures,
-                    TechnologyStacks = s.TechnologyStacks.Select(ts => ts.TechnologyStack).ToList(),
                     Images = s.Images.Select(i => i.FileMetadata).ToList(),
                     Documents = s.Documents.Select(d => d.FileMetadata).ToList(),
+                    TechnologyStacks = s.TechnologyStacks.Select(ts => ts.TechnologyStack).ToList(),
                     Reviews = s.Reviews.Select(r => r.Review).ToList(),
+                    Likes = s.Likes.Select(l => l.Liker).ToList(),
+                    Bookmarks = s.Bookmarks.Select(b => b.Bookmaker).ToList(),
                     Discriminator = EF.Property<string>(s, "Discriminator").ToFormattedString(Casing.Pascal).Replace(nameof(Solution), ""),  // Safely handle Discriminator being null
                 })
                 .FirstOrDefaultAsync();
@@ -136,6 +140,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
+            return StatusCode(500, ex.Message);
             throw;
         }
     }
@@ -287,8 +292,8 @@ public class SolutionsController : ControllerBase
             transaction.Status = PaymentTransaction.EStatus.Complete;
             await _context.SaveChangesAsync();
             // Redirect to your frontend success page with relevant information
-            string clientBaseUrl = _hostEnvironment.IsDevelopment() ? _jwtSettings.Audiences[0] : _jwtSettings.Audiences[1];
-            return Redirect($"{clientBaseUrl}/solutions/purchase/{transaction.Id}/success");
+            string returnUrl = $"{Request.Headers.Origin}/solutions/purchase/{transaction.Id}/success)";
+            return Redirect(returnUrl);
         }
         catch (Exception ex)
         {
@@ -419,7 +424,6 @@ public class SolutionsController : ControllerBase
             throw;
         }
     }
-
 
     private async Task<bool> ValidatePayFastNotification(Dictionary<string, string> formData)
     {
@@ -552,4 +556,138 @@ public class SolutionsController : ControllerBase
         }
     }
 
+
+    public class LikeModel
+    {
+        [Required]
+        public string UserId { get; set; }
+    }
+    [HttpPost("like/{Id}")]
+    public async Task<IActionResult> Like([FromRoute] Guid Id, LikeModel model)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var solution = await _context.Solutions
+                .Where(s => s.Id == Id)
+                .Include(s => s.Likes)
+                .FirstOrDefaultAsync();
+
+            if (solution is null)
+            {
+                return NotFound($"Solution: {Id} not found!");
+            }
+
+            if (solution.Likes.Any(l => l.LikerId == model.UserId))
+            {
+                var like = solution.Likes
+                    .Where(l => l.LikerId == model.UserId)
+                    .FirstOrDefault();
+                solution.Likes.Remove(like);
+            }
+            else
+            {
+                solution.Likes.Add(new Solution_Like
+                {
+                    LikerId = model.UserId,
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            throw;
+        }
+    }
+
+    public class BookmarkModel
+    {
+        public string UserId { get; set; }
+    }
+    [HttpPost("bookmark/{Id}")]
+    public async Task<IActionResult> Bookmark([FromRoute] Guid Id, BookmarkModel model)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var solution = await _context.Solutions
+                .Where(s => s.Id == Id)
+                .Include(s => s.Bookmarks)
+                .FirstOrDefaultAsync();
+
+            if (solution is null)
+            {
+                return NotFound($"Solution: {Id} not found!");
+            }
+
+            if (solution.Bookmarks.Any(b => b.BookmakerId == model.UserId))
+            {
+                var bookmark = solution.Bookmarks
+                    .Where(b => b.BookmakerId == model.UserId)
+                    .FirstOrDefault();
+                solution.Bookmarks.Remove(bookmark);
+            }
+            else
+            {
+                solution.Bookmarks.Add(new Solution_Bookmark
+                {
+                    BookmakerId = model.UserId,
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            throw;
+        }
+    }
+
+    public class CreateSolutionModel
+    {
+        // Basic Info
+        public Guid? ProjectId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Version { get; set; }
+        // Technical Info
+        public string? SourceUrl { get; set; }
+        public string? PreviewUrl { get; set; }
+        public List<Guid>? TechnologyStackIds { get; set; }
+        // Documentation
+        //public List<IFormFile>? Files { get; set; }
+        public string? AdditionalNotes { get; set; }
+    }
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateSolutionModel model, List<IFormFile> files)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+
+            var solution = new Solution
+            {
+                Name = model.Name,
+                Description = model.Description,
+                Version = model.Version,
+                //SourceUrl = model.SourceUrl,
+                //PreviewUrl = model.PreviewUrl,
+            };
+
+            return Created(string.Empty, solution.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
+        }
+    }
 }

@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Models.Domain;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -49,23 +51,100 @@ public class ProjectsController : ControllerBase
         {
             var projects = await _context.Projects
                 .AsNoTrackingWithIdentityResolution()
+                .Include(p => p.Client)
+                .ThenInclude(c => c.Organization)
                 .Include(p => p.Documents)  // Including the junction table
                     .ThenInclude(pd => pd.FileMetadata)  // Include related FileMetadata entities
+                .Include(p => p.Team)
+                    .ThenInclude(t => t.TeamMembers)
+                        .ThenInclude(tm => tm.Member)
+                .Include(p => p.Solutions.Where(s => !s.IsDeleted))
                 .Select(p => new
                 {
                     p.Id,
                     p.Name,
                     p.Description,
-                    p.Team,
-                    p.ProjectTasks,
+                    p.Budget,
+                    p.CreatedAt,
+                    p.UpdatedAt,
                     p.BusinessService,
                     p.Client,
+                    p.ProjectTasks,
                     p.ProjectMilestones,
-                    p.Budget,
+                    p.Solutions,
+                    Status = EnumHelper.GetDisplayName(p.Status),
                     Documents = p.Documents.Select(d => d.FileMetadata).ToList(),  // Select FileMetadata from the junction table
-                    p.CreatedAt,
+                    TechnologyStacks = p.TechnologyStacks.Select(ts => ts.TechnologyStack).ToList(),
+                    Team = new
+                    {
+                        p.Team.Id,
+                        p.Team.Name,
+                        TeamMembers = p.Team.TeamMembers.Select(tm =>new
+                        {
+                            tm.Id,
+                            tm.CreatedAt,
+                            Roles = tm.Roles.Select(r => r.TeamMemberRole).ToList(),
+                            tm.Member,
+                        })
+                    },
                 })
                 .ToListAsync();
+            return Ok(projects);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+
+    [HttpGet("{Id}")]
+    public async Task<IActionResult> Details([FromRoute]Guid Id)
+    {
+        try
+        {
+            var projects = await _context.Projects
+                .AsNoTrackingWithIdentityResolution()
+                .Where(p => p.Id == Id)
+                .Include(p => p.Client)
+                .ThenInclude(c => c.Organization)
+                .Include(p => p.Documents)  // Including the junction table
+                    .ThenInclude(pd => pd.FileMetadata)  // Include related FileMetadata entities
+                .Include(p => p.Team)
+                    .ThenInclude(t => t.TeamMembers)
+                        .ThenInclude(tm => tm.Member)
+                .Include(p => p.Solutions.Where(s => !s.IsDeleted))
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Budget,
+                    p.CreatedAt,
+                    p.UpdatedAt,
+                    p.BusinessService,
+                    p.Client,
+                    p.ProjectTasks,
+                    p.ProjectMilestones,
+                    p.Solutions,
+                    Status = EnumHelper.GetDisplayName(p.Status),
+                    Documents = p.Documents.Select(d => d.FileMetadata).ToList(),  // Select FileMetadata from the junction table
+                    TechnologyStacks = p.TechnologyStacks.Select(ts => ts.TechnologyStack).ToList(),
+                    Team = new
+                    {
+                        p.Team.Id,
+                        p.Team.Name,
+                        TeamMembers = p.Team.TeamMembers.Select(tm => new
+                        {
+                            tm.Id,
+                            tm.CreatedAt,
+                            Roles = tm.Roles.Select(r => r.TeamMemberRole).ToList(),
+                            tm.Member,
+                        })
+                    },
+                })
+                .FirstOrDefaultAsync();
             return Ok(projects);
         }
         catch (Exception ex)
@@ -82,7 +161,8 @@ public class ProjectsController : ControllerBase
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
+            await _context.Projects
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.IsDeleted, true));
             return NoContent();
         }
         catch (Exception ex)

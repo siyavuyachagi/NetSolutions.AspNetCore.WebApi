@@ -84,7 +84,7 @@ public class AccountController : ControllerBase
 
             return StatusCode(400, new { message = string.Join(',', result.Errors) });
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -123,11 +123,8 @@ public class AccountController : ControllerBase
             var user = await _userManager.FindByEmailAsync(model.Username) ?? throw new Exception($"User {model.Username} cannot be found.");
             var roles = await _userManager.GetRolesAsync(user);
 
-            var tokensResult = await _jasonWebToken.GenerateTokens(user, roles.ToArray());
-            if (!tokensResult.Succeeded)
-            {
-                return StatusCode(500, string.Join(',', tokensResult.Errors));
-            }
+            var tokensResult = await _jasonWebToken.GenerateTokens(user, roles.ToArray(), Request);
+            if (!tokensResult.Succeeded) throw new Exception(string.Join(',', tokensResult.Errors));
 
             // Return success status 
             var tokensResponse = tokensResult.Response;
@@ -148,7 +145,7 @@ public class AccountController : ControllerBase
     {
         try
         {
-            var result = await _jasonWebToken.RefreshToken(refreshToken);
+            var result = await _jasonWebToken.RefreshToken(refreshToken, Request);
             if (!result.Succeeded) return Unauthorized(string.Join(',', result.Errors)); //Return UnAuthorized
             return Ok(result.Response);
         }
@@ -241,5 +238,4 @@ public class AccountController : ControllerBase
             return StatusCode(500, ex);
         }
     }
-
 }

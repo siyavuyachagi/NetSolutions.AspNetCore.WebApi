@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Data.Interceptors;
 using NetSolutions.WebApi.Models.Domain;
 using System.Text;
 using System.Text.Json.Serialization; // Add this using directive
@@ -12,7 +13,6 @@ using System.Text.Json.Serialization; // Add this using directive
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -31,10 +31,6 @@ builder.Services.AddControllers()
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("DefaultConnection not found!");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    //options.UseSqlite("Data Source=./Data/data.db", sqliteOptionsAction =>
-    //{
-    //    sqliteOptionsAction.MigrationsAssembly("NetSolutions.WebApi");
-    //});
     options.UseSqlServer(connectionString, sqlServerOptionsAction =>
     {
         sqlServerOptionsAction.EnableRetryOnFailure(3);
@@ -42,6 +38,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     });
     options.EnableDetailedErrors();
     options.EnableSensitiveDataLogging();
+    options.AddInterceptors(new ChangesInterceptor());
     // Disable this warning in development for data generation
     options.ConfigureWarnings(warnings =>
     {
@@ -76,8 +73,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Environment.IsDevelopment() ? jwtSettings.Issuers[0] : jwtSettings.Issuers[1],
-        ValidAudience = builder.Environment.IsDevelopment() ? jwtSettings.Audiences[0] : jwtSettings.Audiences[1],
+        ValidIssuers = builder.Environment.IsDevelopment() ? jwtSettings.Issuers : jwtSettings.Issuers,
+        ValidAudiences = builder.Environment.IsDevelopment() ? jwtSettings.Audiences : jwtSettings.Audiences,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
     };
 });

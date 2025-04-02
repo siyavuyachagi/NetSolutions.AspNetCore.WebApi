@@ -21,18 +21,20 @@ public class Solution
     public string Description { get; set; }
     public string? PreviewUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; }
     public string? SourceUrl { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
-    public double Version { get; set; } = 1.0;
+    public string Version { get; set; } = "1.0.0";
     public bool IsDeleted { get; set; }
 
-    public virtual User_Solution Buyer { get; set; }
-    public virtual List<Solution_FileMetadata_Image> Images { get; set; }
     public virtual List<SolutionFeature> SolutionFeatures { get; set; }
+    public virtual List<User_Solution> Buyers { get; set; }
+    public virtual List<Solution_FileMetadata_Image> Images { get; set; }
     public virtual List<Solution_FileMetadata_Document> Documents { get; set; }
     public virtual List<Solution_Review> Reviews { get; set; }
     public virtual List<Solution_TechnologyStack> TechnologyStacks { get; set; }
+    public virtual List<Solution_Like> Likes { get; set; }
+    public virtual List<Solution_Bookmark> Bookmarks { get; set; }
 }

@@ -71,7 +71,47 @@ public class ApplicationUsersController : ControllerBase
                         .ToList(), // Get role names as a list
                     u.Organization,
                     u.UserActivities,
-                    Solutions = u.User_Solutions.Select(us => us.Solution).ToList(),
+                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
+                })
+                .ToListAsync();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
+
+    [HttpGet("{Id}")]
+    public async Task<IActionResult> Details([FromRoute]string Id)
+    {
+        try
+        {
+            var users = await _userManager.Users
+                .Where(u => u.Id == Id)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UserName,
+                    u.LastName,
+                    u.FirstName,
+                    u.Email,
+                    u.EmailConfirmed,
+                    u.PhoneNumber,
+                    u.PhoneNumberConfirmed,
+                    u.Gender,
+                    u.Bio,
+                    u.CreatedAt,
+                    u.UpdatedAt,
+                    Avatar = u.ProfileImage.ViewLink,
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id) // Match roles by user ID
+                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
+                        .ToList(), // Get role names as a list
+                    u.Organization,
+                    u.UserActivities,
+                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
                 })
                 .ToListAsync();
             return Ok(users);

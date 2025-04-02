@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using NetSolutions.Helpers;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
 
@@ -18,8 +15,8 @@ namespace NetSolutions.Services;
 public interface IJasonWebToken
 {
     Task<Result<string>> GenerateRefreshToken(string userId);
-    Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles);
-    Task<Result<TokenResponse>> RefreshToken(string refreshToken);
+    Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles, HttpRequest request);
+    Task<Result<TokenResponse>> RefreshToken(string refreshToken, HttpRequest request);
     int RefreshTokenExpirationMinutes { get; }
 }
 #endregion
@@ -36,8 +33,7 @@ public class JasonWebToken : IJasonWebToken
         ApplicationDbContext dbContext,
         ILogger<IJasonWebToken> logger,
         UserManager<ApplicationUser> userManager,
-        JwtSettings jwtSettings
-    )
+        JwtSettings jwtSettings)
     {
         _db = dbContext;
         _logger = logger;
@@ -85,7 +81,7 @@ public class JasonWebToken : IJasonWebToken
 
     #endregion
 
-    public async Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles)
+    public async Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles, HttpRequest request)
     {
         try
         {
@@ -111,8 +107,8 @@ public class JasonWebToken : IJasonWebToken
 
             // Create the token
             var token = new JwtSecurityToken(
-                issuer: _jwtSettings.Issuers[0],
-                audience: _jwtSettings.Audiences[0],
+                issuer: $"{request.Scheme}://{request.Host}{request.PathBase}",
+                audience: request.Headers.Origin,
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(_jwtSettings.TokenExpirationMinutes),
                 signingCredentials: creds);
@@ -120,6 +116,8 @@ public class JasonWebToken : IJasonWebToken
             // Return the serialized token
             var serializedToken = new JwtSecurityTokenHandler().WriteToken(token);
             var refreshTokenResult = await GenerateRefreshToken(user.Id);
+            if (!refreshTokenResult.Succeeded) throw new Exception("Error generating refresh token");
+
             var avatar = await _db.Users
                 .Where(u => u.Id == user.Id)
                 .Include(pi => pi.ProfileImage)
@@ -148,7 +146,7 @@ public class JasonWebToken : IJasonWebToken
     }
 
 
-    public async Task<Result<TokenResponse>> RefreshToken(string refreshToken)
+    public async Task<Result<TokenResponse>> RefreshToken(string refreshToken, HttpRequest request)
     {
         try
         {
@@ -169,7 +167,7 @@ public class JasonWebToken : IJasonWebToken
             // Generate a new JWT Access & Refresh tokens
             var user = await _userManager.FindByIdAsync(storedRefreshToken.UserId);
             var roles = await _userManager.GetRolesAsync(user);
-            var tokensResult = await GenerateTokens(user, roles.ToArray());
+            var tokensResult = await GenerateTokens(user, roles.ToArray(), request);
 
             return Result.Success(tokensResult.Response);
         }

@@ -89,7 +89,7 @@ public class ClientsController : ControllerBase
                         p.CreatedAt,
                     }).ToList(),
                     c.UserActivities,
-                    Solutions = c.User_Solutions.Select(us => us.Solution).ToList(),
+                    Solutions = c.UserSolutions.Select(us => us.Solution).ToList(),
                 })
                 .ToListAsync();
             return Ok(clients);
@@ -146,7 +146,7 @@ public class ClientsController : ControllerBase
                         Documents = p.Documents.Select(d => d.FileMetadata).ToList(),  // Select FileMetadata from the junction table
                     }).ToList(),
                     c.UserActivities,
-                    Solutions = c.User_Solutions.Select(us => us.Solution).ToList(),
+                    Solutions = c.UserSolutions.Select(us => us.Solution).ToList(),
                 })
                 .FirstOrDefaultAsync();
             return Ok(client);

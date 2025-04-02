@@ -44,7 +44,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         .HasForeignKey(x => x.ProjectTeamId)
         .OnDelete(DeleteBehavior.Restrict);
 
-        //Seed.Init(builder);
+        Seed.Init(builder);
     }
 
 

@@ -30,5 +30,7 @@ public class ApplicationUser: IdentityUser
     public virtual Organization? Organization { get; set; }
 
     public virtual List<UserActivity> UserActivities { get; set; }
-    public virtual List<User_Solution> User_Solutions { get; set; }
+    public virtual List<User_Solution> UserSolutions { get; set; }
+    public virtual List<Solution_Like> LikedSolutions { get; set; }
+    public virtual List<Solution_Bookmark> BookmarkedSolutions { get; set; }
 }
