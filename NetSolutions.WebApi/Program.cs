@@ -7,6 +7,7 @@ using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Data.Interceptors;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Tasks;
 using System.Text;
 using System.Text.Json.Serialization; // Add this using directive
 
@@ -73,8 +74,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuers = builder.Environment.IsDevelopment() ? jwtSettings.Issuers : jwtSettings.Issuers,
-        ValidAudiences = builder.Environment.IsDevelopment() ? jwtSettings.Audiences : jwtSettings.Audiences,
+        ValidIssuers = jwtSettings.Issuers,
+        ValidAudiences = jwtSettings.Audiences,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
     };
 });
@@ -121,6 +122,12 @@ var payFastCreds = builder.Configuration.GetSection("PayFastCreds").Get<PayFastC
 builder.Services.AddSingleton(payFastCreds);
 builder.Services.AddScoped<IPayFast, PayFast>();
 
+////✅ Register Redis Cache
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    options.Configuration = builder.Environment.IsDevelopment() ? jwtSettings.Issuers : jwtSettings.Issuers; // Your Redis server
+//});
+//builder.Services.AddHostedService<Redis>();
 
 var app = builder.Build();
 

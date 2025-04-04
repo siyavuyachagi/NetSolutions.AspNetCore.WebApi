@@ -172,7 +172,7 @@ public class BusinessServicePackagesController : ControllerBase
             var transaction = new PaymentTransaction
             {
                 Amount = subscription.BusinessServicePackage.Price,
-                Status = PaymentTransaction.EStatus.Successfull,
+                Status = PaymentTransaction.EStatus.Pending,
                 TransactionReference = subscription.Id.ToString(),
                 CreatedAt = DateTime.UtcNow
             };

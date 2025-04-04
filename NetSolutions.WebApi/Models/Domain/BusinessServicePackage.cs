@@ -27,4 +27,5 @@ public class BusinessServicePackage
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual List<BusinessServicePackageFeature> PackageFeatures { get; set; }
+    public virtual List<Subscription> Subscriptions { get; set; }
 }

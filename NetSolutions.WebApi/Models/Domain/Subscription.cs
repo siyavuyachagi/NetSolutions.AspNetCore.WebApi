@@ -25,6 +25,6 @@ public class Subscription
 
     public int RecurringCycle { get; set; } = 0; // Number of months subscription should run 0 = Infinite
     public EStatus Status { get; set; } = EStatus.Active;
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

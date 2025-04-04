@@ -654,6 +654,7 @@ public class SolutionsController : ControllerBase
     {
         // Basic Info
         public Guid? ProjectId { get; set; }
+        [Required]
         public string Name { get; set; }
         public string Description { get; set; }
         public string Version { get; set; }
@@ -661,12 +662,14 @@ public class SolutionsController : ControllerBase
         public string? SourceUrl { get; set; }
         public string? PreviewUrl { get; set; }
         public List<Guid>? TechnologyStackIds { get; set; }
-        // Documentation
-        //public List<IFormFile>? Files { get; set; }
+        //Files & Documentation
+        [FileExtensions(Extensions =".png, .jpg, .jpeg")]
+        public List<IFormFile>? DisplayImages { get; set; }
+        public List<IFormFile>? DocumentationFiles { get; set; }
         public string? AdditionalNotes { get; set; }
     }
     [HttpPost]
-    public async Task<IActionResult> Create(CreateSolutionModel model, List<IFormFile> files)
+    public async Task<IActionResult> Create(CreateSolutionModel model)
     {
         try
         {

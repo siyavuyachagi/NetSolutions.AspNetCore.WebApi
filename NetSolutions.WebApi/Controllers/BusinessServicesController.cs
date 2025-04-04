@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Models.Domain;
 using System.ComponentModel.DataAnnotations;
 using static NetSolutions.WebApi.Controllers.BusinessServicesController;
 
@@ -57,12 +58,14 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                var projects = await _context.BusinessServices
+                var businessServices = await _context.BusinessServices
                     .AsNoTracking()
                     .Include(bs => bs.Testimonials)
-                    .ThenInclude(t => t.Testimonial.Evaluator)
+                        .ThenInclude(t => t.Testimonial.Evaluator)
                     .Include(bs => bs.Packages)
-                    .ThenInclude(p => p.PackageFeatures)
+                        .ThenInclude(p => p.PackageFeatures)
+                    .Include(bs => bs.Packages)
+                        .ThenInclude(p => p.Subscriptions)
                     .Select(s => new
                     {
                         s.Id,
@@ -82,31 +85,45 @@ namespace NetSolutions.WebApi.Controllers
                             p.BusinessServiceId,
                             p.PackageFeatures,
                             p.CreatedAt,
+                            Subscriptions = p.Subscriptions.Select(s => new
+                            {
+                                s.Id,
+                                s.ClientId,
+                                s.Client,
+                                s.BusinessServicePackageId,
+                                s.BusinessServicePackage,
+                                Status = EnumHelper.GetDisplayName(s.Status),
+                                s.CreatedAt,
+                                s.RecurringCycle,
+                                s.UpdatedAt,
+                            })
                         }),
                     })
                     .ToListAsync();
-                return Ok(projects);
+                return Ok(businessServices);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }
 
 
         [HttpGet("{Id}")]
-        public async Task<IActionResult> Details([FromRoute]Guid Id)
+        public async Task<IActionResult> Details([FromRoute] Guid Id)
         {
             try
             {
-                var projects = await _context.BusinessServices
+                var businessService = await _context.BusinessServices
                     .AsNoTracking()
                     .Where(s => s.Id == Id)
                     .Include(bs => bs.Testimonials)
-                    .ThenInclude(t => t.Testimonial.Evaluator)
+                        .ThenInclude(t => t.Testimonial.Evaluator)
                     .Include(bs => bs.Packages)
-                    .ThenInclude(p => p.PackageFeatures)
+                        .ThenInclude(p => p.PackageFeatures)
+                    .Include(bs => bs.Packages)
+                        .ThenInclude(p => p.Subscriptions)
                     .Select(s => new
                     {
                         s.Id,
@@ -126,14 +143,26 @@ namespace NetSolutions.WebApi.Controllers
                             p.BusinessServiceId,
                             p.PackageFeatures,
                             p.CreatedAt,
+                            Subscriptions = p.Subscriptions.Select(s => new
+                            {
+                                s.Id,
+                                s.ClientId,
+                                s.Client,
+                                s.BusinessServicePackageId,
+                                s.BusinessServicePackage,
+                                Status = EnumHelper.GetDisplayName(s.Status),
+                                s.CreatedAt,
+                                s.RecurringCycle,
+                                s.UpdatedAt,
+                            })
                         }),
                     })
                     .FirstOrDefaultAsync();
-                return Ok(projects);
+                return Ok(businessService);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }

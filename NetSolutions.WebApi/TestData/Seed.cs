@@ -32,6 +32,7 @@ public class Seed
     public static List<Solution_FileMetadata_Image> Solution_FileMetadata_Images { get; set; } = new List<Solution_FileMetadata_Image>();
     public static List<Developer> Developers { get; set; } = new List<Developer>();
     public static List<Solution> Solutions { get; set; } = new List<Solution>();
+    public static List<Subscription> Subscriptions { get; set; } = new List<Subscription>();
     public static List<Project_FileMetadata_Document> Project_FileMetadata_Documents { get; set; } = new List<Project_FileMetadata_Document>();
     public static List<Solution_FileMetadata_Document> Solution_FileMetadata_Documents { get; set; } = new List<Solution_FileMetadata_Document>();
     public static List<Designer> Designers { get; set; } = new List<Designer>();
@@ -43,6 +44,7 @@ public class Seed
     public static List<ProjectTask> ProjectTasks { get; set; } = new List<ProjectTask>();
     public static List<TeamMemberRole> TeamMemberRoles { get; set; } = new List<TeamMemberRole>();
     public static List<Project> Projects { get; set; } = new List<Project>();
+    public static List<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public static List<Project_TechnologyStack> Project_TechnologyStacks { get; set; } = new List<Project_TechnologyStack>();
     public static List<Solution_TechnologyStack> Solution_TechnologyStacks { get; set; } = new List<Solution_TechnologyStack>();
     public static List<Client> Clients { get; set; } = new List<Client>();
@@ -62,5 +64,6 @@ public class Seed
         ProjectsData.GenerateProjects(builder);
         SolutionsData.GenerateSolutions(builder);
         BusinessService_TestimonialData.GenerateBusinessServiceTestimonials(builder);
+        SubscriptionsData.GenerateUserSubscriptions(builder);
     }
 }
