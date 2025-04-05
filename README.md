@@ -28,7 +28,10 @@ The **Client Portal API** is a robust and secure backend service designed to pow
 - **Database:** SQL Server / PostgreSQL
 - **Authentication:** JWT with ASP.NET Identity
 - **Caching:** Redis
-- **Storage:** Azure Blob Storage (for documents)
+- **Storage:**
+  - Azure Blob Storage (for documents)
+  - **Cloudinary** (for images and media)
+  - **Google Drive** (alternative storage solution for files)
 - **Logging & Monitoring:** Serilog & Application Insights
 - **Deployment:** Docker & Kubernetes (optional)
 
