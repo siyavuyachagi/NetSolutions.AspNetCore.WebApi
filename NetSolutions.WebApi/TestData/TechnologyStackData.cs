@@ -116,7 +116,7 @@ public class TechnologyStackData
             Seed.TechnologyStacks.AddRange(codeHosts);
             builder.Entity<CodeHost>().HasData(codeHosts);
 
-            Console.WriteLine("TechnologyStack Complete");
+            Console.WriteLine($"TechnologyStacks generated: {Seed.TechnologyStacks.Count()}");
         }
         catch (Exception ex)
         {

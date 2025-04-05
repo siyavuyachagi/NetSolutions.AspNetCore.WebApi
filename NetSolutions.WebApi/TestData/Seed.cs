@@ -63,7 +63,6 @@ public class Seed
         TeamMemberRolesData.GenerateProjectTeamMemberRoles(builder);
         ProjectsData.GenerateProjects(builder);
         SolutionsData.GenerateSolutions(builder);
-        BusinessService_TestimonialData.GenerateBusinessServiceTestimonials(builder);
         SubscriptionsData.GenerateUserSubscriptions(builder);
     }
 }

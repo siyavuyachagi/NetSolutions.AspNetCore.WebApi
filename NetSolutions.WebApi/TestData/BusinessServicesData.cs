@@ -9,6 +9,7 @@ namespace NetSolutions.WebApi.TestData;
 public class BusinessServicesData
 {
     private static readonly Faker _faker = new("en_ZA");
+    private static readonly Random _random = new();
 
     public static void GenerateServices(ModelBuilder builder)
     {
@@ -22,7 +23,7 @@ public class BusinessServicesData
                     Id = Guid.NewGuid(),
                     Name = "Mobile Development",
                     Description = "Our mobile development services cover native and cross-platform applications for iOS and Android devices. We specialize in creating intuitive, high-performance mobile applications that provide seamless user experiences across all devices. Whether you need a consumer-facing app or an enterprise mobility solution, our experienced team ensures your mobile application meets modern standards.",
-                    CreatedAt = DateTime.Now.AddYears(-1).AddMonths(-8),
+                    CreatedAt = _faker.Date.Past(),
                     UpdatedAt = DateTime.Now,
                 },
                 new BusinessService
@@ -30,7 +31,7 @@ public class BusinessServicesData
                     Id = Guid.NewGuid(),
                     Name = "UI/UX Design",
                     Description = "Our UI/UX design services focus on creating intuitive, engaging, and user-centered digital experiences. We conduct thorough user research, develop wireframes and prototypes, and design responsive interfaces that look great and function flawlessly. Our design process emphasizes usability testing and iteration to ensure the final product meets both user needs and business goals.",
-                    CreatedAt = DateTime.Now.AddYears(-1).AddMonths(-6),
+                    CreatedAt = _faker.Date.Past(),
                     UpdatedAt = DateTime.Now,
                 },
                 new BusinessService
@@ -38,7 +39,7 @@ public class BusinessServicesData
                     Id = Guid.NewGuid(),
                     Name = "Web Design",
                     Description = "Our web design services focus on creating visually stunning, responsive websites that captivate your audience and strengthen your brand presence online. We combine aesthetics with functionality to design custom layouts, engaging visual elements, and intuitive navigation systems. Our designers work closely with clients to ensure the final website not only looks impressive but also delivers an optimal browsing experience across all devices and screen sizes.",
-                    CreatedAt = DateTime.Now.AddYears(-1).AddMonths(-10),
+                    CreatedAt = _faker.Date.Past(),
                     UpdatedAt = DateTime.Now,
                 },
                 new BusinessService
@@ -46,7 +47,7 @@ public class BusinessServicesData
                     Id = Guid.NewGuid(),
                     Name = "Web Development",
                     Description = "We offer comprehensive web development services using cutting-edge technologies such as ASP.NET Core and Vue.js. Our solutions include responsive websites, web applications, e-commerce platforms, and custom CMS implementations. We focus on creating scalable, maintainable, and secure web applications that provide exceptional user experiences while meeting your business requirements.",
-                    CreatedAt = DateTime.Now.AddYears(-2),
+                    CreatedAt = _faker.Date.Past(),
                     UpdatedAt = DateTime.Now,
                 },
             };
@@ -58,7 +59,7 @@ public class BusinessServicesData
             GenerateBusinessServicePackages(builder);
             GenerateBusinessServicePackageFeatures(builder);
 
-            Console.WriteLine("BusinessService Complete");
+            Console.WriteLine($"BusinessServices generated: {Seed.BusinessServices.Count()}");
         }
         catch (Exception ex)
         {
@@ -346,5 +347,4 @@ public class BusinessServicesData
             throw;
         }
     }
-
 }

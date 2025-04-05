@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Models.Domain;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -55,6 +57,31 @@ public class SubscriptionsController : ControllerBase
         try
         {
             var subscriptions = await _context.Subscriptions
+                .AsNoTrackingWithIdentityResolution()
+                .Include(s => s.BusinessServicePackage.BusinessService)
+                .Include(s => s.BusinessServicePackage.PackageFeatures)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.ClientId,
+                    s.Client,
+                    s.BusinessServicePackageId,
+                    BusinessServicePackage = new
+                    {
+                        s.BusinessServicePackage.Id,
+                        s.BusinessServicePackage.Name,
+                        s.BusinessServicePackage.Description,
+                        s.BusinessServicePackage.Price,
+                        s.BusinessServicePackage.BusinessService,
+                        s.BusinessServicePackage.PackageFeatures,
+                        BillingCycle = EnumHelper.GetDisplayName(s.BusinessServicePackage.BillingCycle),
+                        s.BusinessServicePackage.CreatedAt,
+                    },
+                    s.RecurringCycle,
+                    Status = EnumHelper.GetDisplayName(s.Status),
+                    s.CreatedAt,
+                    s.UpdatedAt
+                })
                 .ToListAsync();
             return Ok(subscriptions);
         }
@@ -77,12 +104,24 @@ public class SubscriptionsController : ControllerBase
                 .Select(s => new
                 {
                     s.Id,
-                    s.Status,
-                    s.RecurringCycle,
-                    s.BusinessServicePackage,
+                    s.ClientId,
                     s.Client,
+                    s.BusinessServicePackageId,
+                    BusinessServicePackage = new
+                    {
+                        s.BusinessServicePackage.Id,
+                        s.BusinessServicePackage.Name,
+                        s.BusinessServicePackage.Description,
+                        s.BusinessServicePackage.Price,
+                        s.BusinessServicePackage.BusinessService,
+                        s.BusinessServicePackage.PackageFeatures,
+                        BillingCycle = EnumHelper.GetDisplayName(s.BusinessServicePackage.BillingCycle),
+                        s.BusinessServicePackage.CreatedAt,
+                    },
+                    s.RecurringCycle,
+                    Status = EnumHelper.GetDisplayName(s.Status),
                     s.CreatedAt,
-                    s.UpdatedAt,
+                    s.UpdatedAt
                 })
                 .FirstOrDefaultAsync();
 

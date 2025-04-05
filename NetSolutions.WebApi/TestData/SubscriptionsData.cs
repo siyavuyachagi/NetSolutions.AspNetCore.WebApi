@@ -30,7 +30,8 @@ public class SubscriptionsData
                     ClientId = client.Id,
                     BusinessServicePackageId = selectedPackage.Id,
                     Status = Subscription.EStatus.Active,
-                    //RecurringCycle = selectedPackage.BillingCycle
+                    //RecurringCycle = selectedPackage.BillingCycle,
+                    CreatedAt = _faker.Date.Past()
                 };
 
                 Seed.Subscriptions.Add(subscription);
@@ -44,7 +45,7 @@ public class SubscriptionsData
                     Status = PaymentTransaction.EStatus.Complete,
                     TransactionReference = subscription.Id.ToString(),
                     PaymentMethod = _faker.PickRandom(new[] { "cc", "dc" }),
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = subscription.CreatedAt
                 };
                 Seed.PaymentTransactions.Add(transaction);
                 builder.Entity<PaymentTransaction>().HasData(transaction);

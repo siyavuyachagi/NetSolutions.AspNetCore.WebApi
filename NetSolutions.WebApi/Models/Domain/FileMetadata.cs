@@ -22,7 +22,10 @@ public class FileMetadata
         OneDrive = 2,
 
         [Display(Name = "Amazon S3")]
-        AWS_S3 = 3
+        AWS_S3 = 3,
+
+        [Display(Name = "Cloudinary")]
+        Cloudinary = 4
     }
 
     [Key]

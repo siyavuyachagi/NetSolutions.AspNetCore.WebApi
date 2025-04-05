@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using CloudinaryDotNet;
+using dotenv.net;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -7,6 +9,7 @@ using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Data.Interceptors;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Services;
 using NetSolutions.WebApi.Tasks;
 using System.Text;
 using System.Text.Json.Serialization; // Add this using directive
@@ -128,6 +131,21 @@ builder.Services.AddScoped<IPayFast, PayFast>();
 //    options.Configuration = builder.Environment.IsDevelopment() ? jwtSettings.Issuers : jwtSettings.Issuers; // Your Redis server
 //});
 //builder.Services.AddHostedService<Redis>();
+
+
+//// Set your Cloudinary credentials
+////=================================
+//DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+//Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+//cloudinary.Api.Secure = true;
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+    Account account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
+    return new CloudinaryDotNet.Cloudinary(account);
+});
+
 
 var app = builder.Build();
 
