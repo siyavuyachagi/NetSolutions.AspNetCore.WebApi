@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Models.DTOs;
+using NetSolutions.WebApi.Repositories;
+using NetSolutions.WebApi.Services;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -32,6 +35,9 @@ public class SolutionsController : ControllerBase
     private readonly PayFastCreds _payFastCreds;
     private readonly JwtSettings _jwtSettings;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IRedisCache _redisCache;
+    private readonly ISolutionsRepository _solutionsRepository;
+    private const string SOLUTIONS_CACHE_KEY = "solutions_list_cache";
 
     public SolutionsController(
         UserManager<ApplicationUser> userManager,
@@ -45,7 +51,9 @@ public class SolutionsController : ControllerBase
         IPayFast payFast,
         PayFastCreds payFastCreds,
         JwtSettings jwtSettings,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        IRedisCache redisCache,
+        ISolutionsRepository solutionsRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -59,6 +67,8 @@ public class SolutionsController : ControllerBase
         _payFastCreds = payFastCreds;
         _jwtSettings = jwtSettings;
         _hostEnvironment = hostEnvironment;
+        _redisCache = redisCache;
+        _solutionsRepository = solutionsRepository;
     }
 
 
@@ -67,35 +77,14 @@ public class SolutionsController : ControllerBase
     {
         try
         {
-            var solutions = await _context.Solutions
-                .AsNoTrackingWithIdentityResolution()
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.ProjectId,
-                    s.Project,
-                    s.Description,
-                    s.Price,
-                    s.SourceUrl,
-                    s.PreviewUrl,
-                    s.Version,
-                    s.CreatedAt,
-                    s.UpdatedAt,
-                    Features = s.SolutionFeatures,
-                    TechnologyStacks = s.TechnologyStacks.Select(x => x.TechnologyStack).ToList(),
-                    Images = s.Images.Select(i => i.FileMetadata).ToList(),
-                    Documents = s.Documents.Select(x => x.FileMetadata).ToList(),
-                    Reviews = s.Reviews.Select(x => x.Review).ToList(),
-                    Discriminator = EF.Property<string>(s, "Discriminator").ToFormattedString(Casing.Pascal).Replace(nameof(Solution), ""),  // Safely handle Discriminator being null
-                })
-                .ToListAsync();
-            return Ok(solutions);
+                var result = await _solutionsRepository.GetSolutionsAsync();
+                if (!result.Succeeded) return NotFound(result.Errors);
+                return Ok(result.Response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -105,43 +94,14 @@ public class SolutionsController : ControllerBase
     {
         try
         {
-            var solutions = await _context.Solutions
-                .AsNoTrackingWithIdentityResolution()
-                .Include(s => s.TechnologyStacks)
-                .ThenInclude(ts => ts.TechnologyStack)
-                .Include(s => s.Reviews)
-                .ThenInclude(r => r.Review.Evaluator)
-                .Where(s => s.Id == Id)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.ProjectId,
-                    s.Project,
-                    s.Description,
-                    s.Price,
-                    s.SourceUrl,
-                    s.PreviewUrl,
-                    s.Version,
-                    s.CreatedAt,
-                    s.UpdatedAt,
-                    Features = s.SolutionFeatures,
-                    Images = s.Images.Select(i => i.FileMetadata).ToList(),
-                    Documents = s.Documents.Select(d => d.FileMetadata).ToList(),
-                    TechnologyStacks = s.TechnologyStacks.Select(ts => ts.TechnologyStack).ToList(),
-                    Reviews = s.Reviews.Select(r => r.Review).ToList(),
-                    Likes = s.Likes.Select(l => l.Liker).ToList(),
-                    Bookmarks = s.Bookmarks.Select(b => b.Bookmaker).ToList(),
-                    Discriminator = EF.Property<string>(s, "Discriminator").ToFormattedString(Casing.Pascal).Replace(nameof(Solution), ""),  // Safely handle Discriminator being null
-                })
-                .FirstOrDefaultAsync();
-            return Ok(solutions);
+            var result = await _solutionsRepository.GetSolutionAsync(Id);
+            if (!result.Succeeded) return NotFound(result.Errors);
+            return Ok(result.Response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
             return StatusCode(500, ex.Message);
-            throw;
         }
     }
 
@@ -177,7 +137,7 @@ public class SolutionsController : ControllerBase
 
                 var userResult = await _userManager.CreateAsync(user);
 
-                if (!userResult.Succeeded) throw new Exception(string.Join(", ", userResult.Errors));
+                if (!userResult.Succeeded) throw new Exception(string.Join(", ", userResult.Errors.Select(x => x.Description).ToList()));
 
                 if (!await _roleManager.RoleExistsAsync(nameof(GuestUser)))
                     await _roleManager.CreateAsync(new IdentityRole(nameof(GuestUser)));
@@ -269,6 +229,7 @@ public class SolutionsController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, ex.Message);
             return StatusCode(500, "An error occurred while processing your payment");
         }
     }
@@ -298,7 +259,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -328,7 +289,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -421,7 +382,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -600,7 +561,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -646,7 +607,7 @@ public class SolutionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -663,7 +624,7 @@ public class SolutionsController : ControllerBase
         public string? PreviewUrl { get; set; }
         public List<Guid>? TechnologyStackIds { get; set; }
         //Files & Documentation
-        [FileExtensions(Extensions =".png, .jpg, .jpeg")]
+        [FileExtensions(Extensions = ".png, .jpg, .jpeg")]
         public List<IFormFile>? DisplayImages { get; set; }
         public List<IFormFile>? DocumentationFiles { get; set; }
         public string? AdditionalNotes { get; set; }
@@ -693,4 +654,22 @@ public class SolutionsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+    [HttpDelete("{Id}")]
+    public async Task<IActionResult> Delete([FromRoute]Guid Id)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            await _solutionsRepository.DeleteSolutionAsync(Id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
+        }
+    }
+
 }

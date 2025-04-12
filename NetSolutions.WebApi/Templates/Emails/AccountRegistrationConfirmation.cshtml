@@ -1,0 +1,214 @@
+﻿@model NetSolutions.Templates.Emails.AccountRegistrationConfirmation
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Account Registration</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #1E293B; /* neutral.DEFAULT */
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc; /* neutral.50 */
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0; /* neutral.200 */
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #7c3aed; /* primary.DEFAULT */
+        }
+
+            .header img {
+                max-height: 60px;
+                margin-bottom: 10px;
+            }
+
+        .content {
+            padding: 20px 0;
+        }
+
+        .confirmation-message {
+            font-size: 24px;
+            font-weight: bold;
+            color: #5b21b6; /* primary.700 */
+            margin-bottom: 20px;
+        }
+
+        .account-info {
+            background-color: #f5f3ff; /* primary.50 */
+            border-left: 4px solid #7c3aed; /* primary.DEFAULT */
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #7c3aed; /* primary.DEFAULT */
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+            .button:hover {
+                background-color: #6d28d9; /* primary.600 */
+            }
+
+        .confirmation-code {
+            background-color: #ddd6fe; /* primary.200 */
+            border: 1px solid #c4b5fd; /* primary.300 */
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .expiration-notice {
+            background-color: #fee2e2; /* error.100 */
+            border-left: 4px solid #f87171; /* error.DEFAULT */
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #b91c1c; /* error.700 */
+        }
+
+        .steps {
+            background-color: #fffbeb; /* warning.50 */
+            border-left: 4px solid #fbbf24; /* warning.DEFAULT */
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+            .steps h3 {
+                color: #b45309; /* warning.700 */
+                margin-top: 0;
+            }
+
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0; /* neutral.200 */
+            color: #64748b; /* neutral.500 */
+            font-size: 12px;
+        }
+
+        .social-links {
+            margin: 15px 0;
+        }
+
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: #7c3aed; /* primary.DEFAULT */
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName Logo">
+            }
+            <h1>Confirm Your @Model.CompanyName Account</h1>
+        </div>
+
+        <div class="content">
+            <p class="confirmation-message">Email Confirmation Required</p>
+
+            <p>Hello @Model.UserName,</p>
+
+            <p>Thank you for registering with @Model.CompanyName. To complete your registration and activate your account, please confirm your email address by clicking the button below:</p>
+
+            <center>
+                <a href="@Model.ConfirmationUrl" class="button">Confirm My Email Address</a>
+            </center>
+
+            <p>If the button above doesn't work, you can also confirm by copying and pasting the following URL into your browser:</p>
+
+            <p style="word-break: break-all; color: #5b21b6;">@Model.ConfirmationUrl</p>
+
+            @if (!string.IsNullOrEmpty(Model.ConfirmationCode))
+            {
+                <p>Alternatively, you can use this confirmation code when prompted:</p>
+
+                <div class="confirmation-code">
+                    @Model.ConfirmationCode
+                </div>
+            }
+
+            <div class="expiration-notice">
+                <p><strong>Important:</strong> This confirmation link will expire in @Model.ExpirationTime . Please confirm your email address as soon as possible.</p>
+            </div>
+
+            <div class="steps">
+                <h3>What happens after confirmation?</h3>
+                <ul>
+                    <li>Your account will be fully activated</li>
+                    <li>You'll gain access to all features and services</li>
+                    <li>You'll receive a welcome email with additional information</li>
+                </ul>
+            </div>
+
+            <div class="account-info">
+                <p><strong>Username:</strong> @Model.UserName</p>
+                @* <p><strong>Email:</strong> @Model.UserEmail</p> *@
+                <p><strong>Registration Date:</strong> @Model.RegistrationDate.ToString("MMMM dd, yyyy")</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.SupportEmail))
+            {
+                <p>If you did not create an account with @Model.CompanyName or have any questions, please contact our support team at @Model.SupportEmail.</p>
+            }
+
+            <p>Thank you for choosing @Model.CompanyName!</p>
+
+            <p>Best regards,<br>The @Model.CompanyName Team</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year @Model.CompanyName. All rights reserved.</p>
+
+            @if (Model.SocialLinks != null && Model.SocialLinks.Any())
+            {
+                <div class="social-links">
+                    @foreach (var link in Model.SocialLinks)
+                    {
+                        <a href="@link.Url" class="social-link">@link.Name</a>
+                    }
+                </div>
+            }
+
+            <p>
+                @Model.CompanyAddress<br>
+                @if (!string.IsNullOrEmpty(Model.UnsubscribeUrl))
+                {
+                    <a href="@Model.UnsubscribeUrl" style="color: #64748b;">Unsubscribe</a>
+                }
+            </p>
+        </div>
+    </div>
+</body>
+</html>

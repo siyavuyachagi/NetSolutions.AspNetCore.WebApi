@@ -259,7 +259,6 @@ public class SolutionsData
             }
 
             Console.WriteLine($"Solutions generated: {Seed.Solutions.Count()}");
-            Console.WriteLine("GenerateSolutions Complete");
         }
         catch (Exception ex)
         {

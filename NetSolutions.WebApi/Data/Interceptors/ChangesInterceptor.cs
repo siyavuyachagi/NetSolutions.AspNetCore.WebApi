@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace NetSolutions.WebApi.Data.Interceptors;
 
 
-public class ChangesInterceptor : SaveChangesInterceptor
+public class ChangesInterceptor : ISaveChangesInterceptor
 {
-    public override InterceptionResult<int> SavingChanges(
+    public InterceptionResult<int> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result)
     {
@@ -21,6 +21,6 @@ public class ChangesInterceptor : SaveChangesInterceptor
             }
         }
 
-        return base.SavingChanges(eventData, result);
+        return SavingChangesAsync(eventData, result);
     }
 }

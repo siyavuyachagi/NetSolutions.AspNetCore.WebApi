@@ -67,7 +67,7 @@ public class ClientsController : ControllerBase
                     c.Bio,
                     c.CreatedAt,
                     c.UpdatedAt,
-                    Avatar = c.ProfileImage.ViewLink,
+                    c.Avatar,
                     Roles = _context.UserRoles
                             .Where(ur => ur.UserId == c.Id) // Match roles by user ID
                             .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
@@ -123,7 +123,7 @@ public class ClientsController : ControllerBase
                     c.Bio,
                     c.CreatedAt,
                     c.UpdatedAt,
-                    Avatar = c.ProfileImage.ViewLink,
+                    c.Avatar,
                     Roles = _context.UserRoles
                             .Where(ur => ur.UserId == c.Id) // Match roles by user ID
                             .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles

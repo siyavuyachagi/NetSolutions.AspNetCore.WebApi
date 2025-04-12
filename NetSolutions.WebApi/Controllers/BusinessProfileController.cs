@@ -24,7 +24,7 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                var businessProfile = _configuration.GetSection(nameof(BusinessProfile)).Get<BusinessProfile>();
+                var businessProfile = _configuration.GetSection(nameof(NetSolutionsProfile)).Get<NetSolutionsProfile>();
                 return Ok(businessProfile);
             }
             catch (Exception ex)

@@ -23,6 +23,8 @@ out/
 
 # ASP.NET Core config files
 appsettings*.json
+# But don't ignore the base appsettings.json
+!appsettings.json
 
 # Entity Framework Migrations
 Migrations/
@@ -48,7 +50,7 @@ logs/
 
 # Azure & Deployment
 Azure/
-wwwroot/
+wwwroot/DevFiles
 publish/
 *.pubxml
 *.publishsettings

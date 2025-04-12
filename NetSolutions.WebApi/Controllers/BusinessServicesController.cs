@@ -7,6 +7,8 @@ using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Repositories;
+using NetSolutions.WebApi.Services;
 using System.ComponentModel.DataAnnotations;
 using static NetSolutions.WebApi.Controllers.BusinessServicesController;
 
@@ -19,26 +21,27 @@ namespace NetSolutions.WebApi.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
-        private readonly ILogger<AccountController> _logger;
+        private readonly ILogger<BusinessServicesController> _logger;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly IJasonWebToken _jasonWebToken;
         private readonly SmtpSettings _smtpSettings;
         private readonly JwtSettings _jwtSettings;
         private readonly IPayFast _payFast;
-
+        private readonly IBusinessServiceRepository _businessServiceRepository;
 
         public BusinessServicesController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger,
+            ILogger<BusinessServicesController> logger,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
             IJasonWebToken jasonWebToken,
             SmtpSettings smtpSettings,
             JwtSettings jwtSettings,
-            IPayFast payFast)
+            IPayFast payFast,
+            IBusinessServiceRepository businessServiceRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -50,6 +53,7 @@ namespace NetSolutions.WebApi.Controllers
             _smtpSettings = smtpSettings;
             _jwtSettings = jwtSettings;
             _payFast = payFast;
+            _businessServiceRepository = businessServiceRepository;
         }
 
 
@@ -58,49 +62,8 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                var businessServices = await _context.BusinessServices
-                    .AsNoTracking()
-                    .Include(bs => bs.Testimonials)
-                        .ThenInclude(t => t.Testimonial.Evaluator)
-                    .Include(bs => bs.Packages)
-                        .ThenInclude(p => p.PackageFeatures)
-                    .Include(bs => bs.Packages)
-                        .ThenInclude(p => p.Subscriptions)
-                    .Select(s => new
-                    {
-                        s.Id,
-                        s.Name,
-                        s.Description,
-                        s.CreatedAt,
-                        s.UpdatedAt,
-                        Testimonials = s.Testimonials.Select(t => t.Testimonial),
-                        Thumbnail = s.Thumbnail.FileMetadata.ViewLink,
-                        Packages = s.Packages.Select(p => new
-                        {
-                            p.Id,
-                            p.Name,
-                            p.Price,
-                            BillingCycle = EnumHelper.GetDisplayName(p.BillingCycle),
-                            p.Description,
-                            p.BusinessServiceId,
-                            p.PackageFeatures,
-                            p.CreatedAt,
-                            Subscriptions = p.Subscriptions.Select(s => new
-                            {
-                                s.Id,
-                                s.ClientId,
-                                s.Client,
-                                s.BusinessServicePackageId,
-                                s.BusinessServicePackage,
-                                Status = EnumHelper.GetDisplayName(s.Status),
-                                s.CreatedAt,
-                                s.RecurringCycle,
-                                s.UpdatedAt,
-                            })
-                        }),
-                    })
-                    .ToListAsync();
-                return Ok(businessServices);
+                var result = await _businessServiceRepository.GetBusinessServicesAsync();
+                return Ok(result.Response);
             }
             catch (Exception ex)
             {
@@ -115,50 +78,10 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                var businessService = await _context.BusinessServices
-                    .AsNoTracking()
-                    .Where(s => s.Id == Id)
-                    .Include(bs => bs.Testimonials)
-                        .ThenInclude(t => t.Testimonial.Evaluator)
-                    .Include(bs => bs.Packages)
-                        .ThenInclude(p => p.PackageFeatures)
-                    .Include(bs => bs.Packages)
-                        .ThenInclude(p => p.Subscriptions)
-                    .Select(s => new
-                    {
-                        s.Id,
-                        s.Name,
-                        s.Description,
-                        s.CreatedAt,
-                        s.UpdatedAt,
-                        Testimonials = s.Testimonials.Select(t => t.Testimonial),
-                        Thumbnail = s.Thumbnail.FileMetadata.ViewLink,
-                        Packages = s.Packages.Select(p => new
-                        {
-                            p.Id,
-                            p.Name,
-                            p.Price,
-                            BillingCycle = EnumHelper.GetDisplayName(p.BillingCycle),
-                            p.Description,
-                            p.BusinessServiceId,
-                            p.PackageFeatures,
-                            p.CreatedAt,
-                            Subscriptions = p.Subscriptions.Select(s => new
-                            {
-                                s.Id,
-                                s.ClientId,
-                                s.Client,
-                                s.BusinessServicePackageId,
-                                s.BusinessServicePackage,
-                                Status = EnumHelper.GetDisplayName(s.Status),
-                                s.CreatedAt,
-                                s.RecurringCycle,
-                                s.UpdatedAt,
-                            })
-                        }),
-                    })
-                    .FirstOrDefaultAsync();
-                return Ok(businessService);
+                if (!ModelState.IsValid) return NotFound();
+
+                var result = await _businessServiceRepository.GetBusinessServiceAsync(Id);
+                return Ok(result.Response);
             }
             catch (Exception ex)
             {
@@ -167,5 +90,21 @@ namespace NetSolutions.WebApi.Controllers
             }
         }
 
+
+
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Delete([FromRoute]Guid Id)
+        {
+            try
+            {
+                await _businessServiceRepository.DeleteBusinessServiceAsync(Id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

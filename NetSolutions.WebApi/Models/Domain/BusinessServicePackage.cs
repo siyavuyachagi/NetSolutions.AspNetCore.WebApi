@@ -25,6 +25,8 @@ public class BusinessServicePackage
     public BillingCycle BillingCycle { get; set; } = BillingCycle.Monthly;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public bool IsDeleted { get; set; }
 
     public virtual List<BusinessServicePackageFeature> PackageFeatures { get; set; }
     public virtual List<Subscription> Subscriptions { get; set; }

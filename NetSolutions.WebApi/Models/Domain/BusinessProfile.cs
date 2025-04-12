@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace NetSolutions.WebApi.Models.Domain;
 
-public class BusinessProfile
+public class NetSolutionsProfile: Organization
 {
-    public string Name { get; set; }
+    public string RegistrationNumber { get; set; }
     public string Description { get; set; }
     public DateTime FoundAt { get; set; }
 }
-

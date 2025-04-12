@@ -1,16 +1,18 @@
 ﻿using CloudinaryDotNet;
-using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Data.Interceptors;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Repositories;
 using NetSolutions.WebApi.Services;
-using NetSolutions.WebApi.Tasks;
+using NetSolutions.WebApi.TestData;
 using System.Text;
 using System.Text.Json.Serialization; // Add this using directive
 
@@ -59,7 +61,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 //✅Bind BusinessProfile from appsettings.json
-var businessProfile = builder.Configuration.GetSection(nameof(BusinessProfile)).Get<BusinessProfile>() ?? throw new NullReferenceException("BusinessProfile cannot be null");
+var businessProfile = builder.Configuration.GetSection(nameof(NetSolutionsProfile)).Get<NetSolutionsProfile>() ?? throw new NullReferenceException("BusinessProfile cannot be null");
 builder.Services.AddSingleton(businessProfile);
 
 
@@ -125,26 +127,39 @@ var payFastCreds = builder.Configuration.GetSection("PayFastCreds").Get<PayFastC
 builder.Services.AddSingleton(payFastCreds);
 builder.Services.AddScoped<IPayFast, PayFast>();
 
-////✅ Register Redis Cache
-//builder.Services.AddStackExchangeRedisCache(options =>
-//{
-//    options.Configuration = builder.Environment.IsDevelopment() ? jwtSettings.Issuers : jwtSettings.Issuers; // Your Redis server
-//});
-//builder.Services.AddHostedService<Redis>();
+//✅ Register Redis Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"); // Replace with your Redis connection string
+    options.InstanceName = "netsolutions_";
+});
+builder.Services.AddSingleton<IRedisCache, RedisCache>();
 
-
-//// Set your Cloudinary credentials
-////=================================
-//DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
-//Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
-//cloudinary.Api.Secure = true;
+//✅ Register Cloudinary media storage
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
     Account account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
-    return new CloudinaryDotNet.Cloudinary(account);
+    return new Cloudinary(account);
 });
+
+
+// ✅ Data access services
+builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+builder.Services.AddScoped<IProjectsRepository, ProjectsRepository>();
+builder.Services.AddScoped<ISolutionsRepository, SolutionsRepository>();
+builder.Services.AddScoped<IBusinessServicePackagesRepository, BusinessServicePackagesRepository>();
+builder.Services.AddScoped<IBusinessServiceRepository, BusinessServiceRepository>();
+
+/*
+ * Test task automation
+ */
+//builder.Services.AddHostedService<TimeLogger>();
+
+
+// ✅ Register RazorLight as a service
+builder.Services.AddSingleton<IRazorLightEmailRenderer, RazorLightEmailRenderer>();
 
 
 var app = builder.Build();
@@ -160,12 +175,66 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ Swagger for development
 if (app.Environment.IsDevelopment())
 {
+    // ✅ Swagger for development
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // ✅ Add a special path for email template previews in development only
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(Directory.GetCurrentDirectory(), "TestData", "Emails", "Previews")),
+        RequestPath = "/email-previews"
+    });
+
+    // Also add a simple generator for previews
+    app.Map("/generate-preview", previewApp =>
+    {
+        previewApp.Run(async context =>
+        {
+            var template = context.Request.Query["template"].ToString();
+            if (string.IsNullOrEmpty(template))
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("Please specify a template name");
+                return;
+            }
+
+            var services = context.RequestServices;
+            var renderer = services.GetRequiredService<IRazorLightEmailRenderer>();
+
+            try
+            {
+                // Create sample model based on template name
+                object model = template switch
+                {
+                    "AccountRegistrationConfirmation" => EmailTemplatesData.CreateSampleConfirmationModel(),
+                    "AccountRegistrationSuccessful" => EmailTemplatesData.CreateSampleSuccessModel(),
+                    _ => throw new ArgumentException($"No sample data for template '{template}'")
+                };
+
+                var htmlContent = await renderer.RenderEmailTemplateAsync(template, model);
+
+                // Save as static file for future reference
+                var previewDir = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "Emails", "Previews");
+                Directory.CreateDirectory(previewDir);
+                var filePath = Path.Combine(previewDir, $"{template}-preview.html");
+                await System.IO.File.WriteAllTextAsync(filePath, htmlContent);
+
+                context.Response.ContentType = "text/html";
+                await context.Response.WriteAsync(htmlContent);
+            }
+            catch (Exception ex)
+            {
+                context.Response.StatusCode = 500;
+                await context.Response.WriteAsync($"Error: {ex.Message}");
+            }
+        });
+    });
 }
+
 
 app.Run();
 

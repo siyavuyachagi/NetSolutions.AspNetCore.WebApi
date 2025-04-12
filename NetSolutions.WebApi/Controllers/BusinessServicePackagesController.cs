@@ -9,6 +9,7 @@ using NetSolutions.Models.Enums;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Repositories;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
@@ -31,6 +32,7 @@ public class BusinessServicePackagesController : ControllerBase
     private readonly IPayFast _payFast;
     private readonly PayFastCreds _payFastCreds;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IBusinessServicePackagesRepository _businessServicePackagesRepository;
 
     public BusinessServicePackagesController(
         UserManager<ApplicationUser> userManager,
@@ -44,7 +46,8 @@ public class BusinessServicePackagesController : ControllerBase
         JwtSettings jwtSettings,
         IPayFast payFast,
         PayFastCreds payFastCreds,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        IBusinessServicePackagesRepository businessServicePackagesRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -58,8 +61,24 @@ public class BusinessServicePackagesController : ControllerBase
         _payFast = payFast;
         _payFastCreds = payFastCreds;
         _hostEnvironment = hostEnvironment;
+        _businessServicePackagesRepository = businessServicePackagesRepository;
     }
 
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        try
+        {
+            var result = await _businessServicePackagesRepository.GetBusinessServicePackagesAsync();
+            return Ok(result.Response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
+        }
+    }
 
 
     [HttpGet("{Id}")]
@@ -67,22 +86,8 @@ public class BusinessServicePackagesController : ControllerBase
     {
         try
         {
-            var projects = await _context.BusinessServicePackages
-                .AsNoTracking()
-                .Where(s => s.Id == Id)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.Description,
-                    s.Price,
-                    s.BusinessService,
-                    s.PackageFeatures,
-                    BillingCycle = EnumHelper.GetDisplayName(s.BillingCycle),
-                    s.CreatedAt,
-                })
-                .FirstOrDefaultAsync();
-            return Ok(projects);
+            var result = await _businessServicePackagesRepository.GetBusinessServicePackageAsync(Id);
+            return Ok(result.Response);
         }
         catch (Exception ex)
         {
@@ -267,7 +272,7 @@ public class BusinessServicePackagesController : ControllerBase
             {
                 string errorMessage = "Error proccessing request: ";
                 if (subscription is null) errorMessage += $"Subscription Id: {SubscriptionId} cannot be found!";
-                else if(paymentTransaction is null) errorMessage += $"Payment Id: {paymentId} cannot be found!";
+                else if (paymentTransaction is null) errorMessage += $"Payment Id: {paymentId} cannot be found!";
                 _logger.LogError(errorMessage);
                 return NotFound(errorMessage);
             }

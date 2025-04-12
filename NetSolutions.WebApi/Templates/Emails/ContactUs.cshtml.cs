@@ -13,17 +13,24 @@ public class ContactUsViewModel(string Email, string Subject, string Message)
     // Method to fetch the Razor view and return the rendered HTML body
     public async Task<string> HtmlBodyAsync(IWebHostEnvironment webHost)
     {
-        // Get the absolute path using IWebHostEnvironment
-        string templatePath = Path.Combine(webHost.ContentRootPath, "Templates", "Emails", "ContactUs.cshtml");
+        try
+        {
+            // Get the absolute path using IWebHostEnvironment
+            string templatePath = Path.Combine(webHost.ContentRootPath, "Templates", "Emails", "ContactUs.cshtml");
 
-        var engine = new RazorLightEngineBuilder()
-            .UseFileSystemProject(webHost.ContentRootPath)
-            .UseMemoryCachingProvider()
-            .Build();
+            var engine = new RazorLightEngineBuilder()
+                .UseFileSystemProject(webHost.ContentRootPath)
+                .UseMemoryCachingProvider()
+                .Build();
 
-        string templateContent = await File.ReadAllTextAsync(templatePath);
+            string templateContent = await File.ReadAllTextAsync(templatePath);
 
-        // Use "this" as the model since we're passing the current instance
-        return await engine.CompileRenderStringAsync("template-emails-contactus", templateContent, this);
+            // Use "this" as the model since we're passing the current instance
+            return await engine.CompileRenderStringAsync("template-emails-contactus", templateContent, this);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
     }
 }

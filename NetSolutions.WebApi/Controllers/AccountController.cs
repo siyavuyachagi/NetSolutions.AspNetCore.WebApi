@@ -8,6 +8,8 @@ using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using System.ComponentModel.DataAnnotations;
+using NetSolutions.WebApi.Repositories;
+using Azure.Core;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -23,6 +25,7 @@ public class AccountController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IJasonWebToken _jasonWebToken;
     private readonly SmtpSettings _smtpSettings;
+    private readonly IApplicationUserRepository _applicationUserRepository;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
@@ -33,7 +36,8 @@ public class AccountController : ControllerBase
         ApplicationDbContext context,
         IJasonWebToken jasonWebToken,
         IOptions<SmtpSettings> smtpSettings
-    )
+,
+        IApplicationUserRepository applicationUserRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -43,6 +47,7 @@ public class AccountController : ControllerBase
         _context = context;
         _jasonWebToken = jasonWebToken;
         _smtpSettings = smtpSettings.Value;
+        _applicationUserRepository = applicationUserRepository;
     }
 
 
@@ -64,29 +69,38 @@ public class AccountController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return StatusCode(400, ModelState);
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var user = new Administrator { UserName = model.Username, Email = model.Username };
-
+            var user = new Client
+            {
+                UserName = model.Username,
+                Email = model.Username,
+                Avatar = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/images/avatar.jpg",
+            };
             var result = await _userManager.CreateAsync(user, model.Password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                _logger.LogInformation("User created a new account with password.");
-
-                // Send a confirmation email here
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = Url.Action(nameof(ConfirmAccount), "Account", new { userId = user.Id, token }, Request.Scheme);
-                await _emailSender.SendEmailAsync(_smtpSettings.Username, user.Email, "Confirm your account", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
-
-                return StatusCode(201, user.Id);
+                return StatusCode(400, result.Errors.Select(x => x.Description).ToList());
             }
+            _logger.LogInformation("User created a new account with password.");
 
-            return StatusCode(400, new { message = string.Join(',', result.Errors) });
+            // User roles
+            if (!await _roleManager.RoleExistsAsync(nameof(Client)))
+                await _roleManager.CreateAsync(new IdentityRole(nameof(Client)));
+            await _userManager.AddToRoleAsync(user, nameof(Client));
+
+            // Send a confirmation email here
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action(nameof(ConfirmAccount), "Account", new { userId = user.Id, token }, Request.Scheme);
+            await _emailSender.SendEmailAsync(_smtpSettings.Username, user.Email, "Confirm your account", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
+
+            return Created(user.Id, user);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = ex.Message });
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
         }
     }
 
@@ -103,7 +117,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody]LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
         try
         {
@@ -120,10 +134,13 @@ public class AccountController : ControllerBase
             }
 
             _logger.LogInformation("User logged in.");
-            var user = await _userManager.FindByEmailAsync(model.Username) ?? throw new Exception($"User {model.Username} cannot be found.");
-            var roles = await _userManager.GetRolesAsync(user);
+            var userResult = await _applicationUserRepository.GetApplicationUserByUserNameAsync(model.Username);
+            if (!userResult.Succeeded || userResult.Response is null)
+            {
+                return NotFound($"User {model.Username} cannot be found.");
+            }
 
-            var tokensResult = await _jasonWebToken.GenerateTokens(user, roles.ToArray(), Request);
+            var tokensResult = await _jasonWebToken.GenerateTokens(userResult.Response, Request);
             if (!tokensResult.Succeeded) throw new Exception(string.Join(',', tokensResult.Errors));
 
             // Return success status 

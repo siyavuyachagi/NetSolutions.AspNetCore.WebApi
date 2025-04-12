@@ -8,6 +8,9 @@ using System.IdentityModel.Tokens.Jwt;
 using NetSolutions.Helpers;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Controllers;
+using NetSolutions.WebApi.Repositories;
+using NetSolutions.WebApi.Models.DTOs;
 
 namespace NetSolutions.Services;
 
@@ -15,7 +18,7 @@ namespace NetSolutions.Services;
 public interface IJasonWebToken
 {
     Task<Result<string>> GenerateRefreshToken(string userId);
-    Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles, HttpRequest request);
+    Task<Result<TokenResponse>> GenerateTokens(ApplicationUserDto userDto, HttpRequest request);
     Task<Result<TokenResponse>> RefreshToken(string refreshToken, HttpRequest request);
     int RefreshTokenExpirationMinutes { get; }
 }
@@ -29,11 +32,13 @@ public class JasonWebToken : IJasonWebToken
     private readonly ILogger<IJasonWebToken> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtSettings _jwtSettings;
+    private readonly IApplicationUserRepository _applicationUserRepository;
     public JasonWebToken(
         ApplicationDbContext dbContext,
         ILogger<IJasonWebToken> logger,
         UserManager<ApplicationUser> userManager,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        IApplicationUserRepository applicationUserRepository)
     {
         _db = dbContext;
         _logger = logger;
@@ -41,6 +46,7 @@ public class JasonWebToken : IJasonWebToken
         _jwtSettings = jwtSettings;
         // Initialize the refresh token expiration days from the settings
         RefreshTokenExpirationMinutes = jwtSettings.RefreshTokenExpirationMinutes;
+        _applicationUserRepository = applicationUserRepository;
     }
 
     public int RefreshTokenExpirationMinutes { get; }  // Refresh token expiry
@@ -81,20 +87,20 @@ public class JasonWebToken : IJasonWebToken
 
     #endregion
 
-    public async Task<Result<TokenResponse>> GenerateTokens(ApplicationUser user, string[] roles, HttpRequest request)
+    public async Task<Result<TokenResponse>> GenerateTokens(ApplicationUserDto userDto, HttpRequest request)
     {
         try
         {
             // Create the initial claims
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Sub, userDto.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, userDto.UserName)
             };
 
             // Add role claims
-            foreach (var role in roles)
+            foreach (var role in userDto.Roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -115,27 +121,15 @@ public class JasonWebToken : IJasonWebToken
 
             // Return the serialized token
             var serializedToken = new JwtSecurityTokenHandler().WriteToken(token);
-            var refreshTokenResult = await GenerateRefreshToken(user.Id);
+            var refreshTokenResult = await GenerateRefreshToken(userDto.Id);
             if (!refreshTokenResult.Succeeded) throw new Exception("Error generating refresh token");
 
-            var avatar = await _db.Users
-                .Where(u => u.Id == user.Id)
-                .Include(pi => pi.ProfileImage)
-                .Select(pi => pi.ProfileImage.ViewLink)
-                .FirstOrDefaultAsync();
+
             var tokensResponse = new TokenResponse
             {
                 AccessToken = serializedToken,
                 RefreshToken = refreshTokenResult.Response,
-                User = new
-                {
-                    user.Id,
-                    user.UserName,
-                    user.LastName,
-                    user.FirstName,
-                    Roles = roles,
-                    avatar
-                }
+                User = userDto
             };
             return Result.Success(tokensResponse);
         }
@@ -165,14 +159,15 @@ public class JasonWebToken : IJasonWebToken
             await _db.SaveChangesAsync();
 
             // Generate a new JWT Access & Refresh tokens
-            var user = await _userManager.FindByIdAsync(storedRefreshToken.UserId);
-            var roles = await _userManager.GetRolesAsync(user);
-            var tokensResult = await GenerateTokens(user, roles.ToArray(), request);
+            var userResult = await _applicationUserRepository.GetApplicationUserAsync(storedRefreshToken.UserId);
+            if(userResult.Response is null) throw new Exception($"User: {storedRefreshToken.UserId}, cannot be found!");
+            var tokensResult = await GenerateTokens(userResult.Response, request);
 
             return Result.Success(tokensResult.Response);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, ex.Message);
             return Result.Failed<TokenResponse>(ex.Message);
         }
     }
@@ -198,7 +193,7 @@ public class TokenResponse
 {
     public string AccessToken { get; set; }
     public string RefreshToken { get; set; }
-    public object User { get; set; }
+    public ApplicationUserDto User { get; set; }
 }
 
 #endregion

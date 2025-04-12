@@ -8,4 +8,5 @@ namespace NetSolutions.WebApi.Models.Domain;
 
 public class Testimonial: Feedback
 {
+
 }

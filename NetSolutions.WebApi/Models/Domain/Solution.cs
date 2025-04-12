@@ -21,7 +21,7 @@ public class Solution
     public string Description { get; set; }
     public string? PreviewUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public string? SourceUrl { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]

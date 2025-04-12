@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.WebApi.Models.Validations;
 using System.Net;
+using NetSolutions.WebApi.Repositories;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -29,6 +30,7 @@ public class ApplicationUsersController : ControllerBase
     private readonly SmtpSettings _smtpSettings;
     private readonly JwtSettings _jwtSettings;
     private readonly Cloudinary _cloudinary;
+    private readonly IApplicationUserRepository _applicationUserRepository;
 
     public ApplicationUsersController(
         UserManager<ApplicationUser> userManager,
@@ -41,7 +43,8 @@ public class ApplicationUsersController : ControllerBase
         SmtpSettings smtpSettings,
         JwtSettings jwtSettings,
         Cloudinary cloudinary
-    )
+,
+        IApplicationUserRepository applicationUserRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -53,6 +56,7 @@ public class ApplicationUsersController : ControllerBase
         _smtpSettings = smtpSettings;
         _jwtSettings = jwtSettings;
         this._cloudinary = cloudinary;
+        _applicationUserRepository = applicationUserRepository;
     }
 
     [HttpGet]
@@ -60,36 +64,14 @@ public class ApplicationUsersController : ControllerBase
     {
         try
         {
-            var users = await _userManager.Users
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName,
-                    u.LastName,
-                    u.FirstName,
-                    u.Email,
-                    u.EmailConfirmed,
-                    u.PhoneNumber,
-                    u.PhoneNumberConfirmed,
-                    u.Gender,
-                    u.Bio,
-                    u.CreatedAt,
-                    u.UpdatedAt,
-                    Avatar = u.ProfileImage.ViewLink,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id) // Match roles by user ID
-                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
-                        .ToList(), // Get role names as a list
-                    u.Organization,
-                    u.UserActivities,
-                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                })
-                .ToListAsync();
-            return Ok(users);
+            var result = await _applicationUserRepository.GetApplicationUsersAsync();
+            if (!result.Succeeded) return NotFound(result.Errors);
+            return Ok(result.Response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
+            return StatusCode(500, ex.Message);
             throw;
         }
     }
@@ -99,33 +81,9 @@ public class ApplicationUsersController : ControllerBase
     {
         try
         {
-            var users = await _userManager.Users
-                .Where(u => u.Id == Id)
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName,
-                    u.LastName,
-                    u.FirstName,
-                    u.Email,
-                    u.EmailConfirmed,
-                    u.PhoneNumber,
-                    u.PhoneNumberConfirmed,
-                    u.Gender,
-                    u.Bio,
-                    u.CreatedAt,
-                    u.UpdatedAt,
-                    Avatar = u.ProfileImage.ViewLink,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id) // Match roles by user ID
-                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
-                        .ToList(), // Get role names as a list
-                    u.Organization,
-                    u.UserActivities,
-                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                })
-                .FirstOrDefaultAsync();
-            return Ok(users);
+            var result = await _applicationUserRepository.GetApplicationUserAsync(Id);
+            if (!result.Succeeded) return NotFound(result.Errors);
+            return Ok(result.Response);
         }
         catch (Exception ex)
         {
@@ -146,7 +104,7 @@ public class ApplicationUsersController : ControllerBase
     {
         try
         {
-            var user = await _userManager.Users.Include(u => u.ProfileImage).FirstOrDefaultAsync(u => u.Id == UserId);
+            var user = await _context.Users.FindAsync(UserId);
             if (user is null) return NotFound($"User : {UserId}, could not be found!");
 
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
@@ -173,9 +131,13 @@ public class ApplicationUsersController : ControllerBase
                 return StatusCode((int)uploadResult.StatusCode, uploadResult.Error?.Message);
 
             // Delete previous profile image
-            if(user.ProfileImage is not null)
+            var profileImage = await _context.FileMetadatas
+                .Where(f => f.ViewLink == user.Avatar)
+                .FirstOrDefaultAsync();
+
+            if (profileImage is not null)
             {
-                switch (user.ProfileImage.StorageProvider)
+                switch (profileImage.StorageProvider)
                 {
                     case FileMetadata.EStorageProvider.Local:
                         break;
@@ -186,10 +148,7 @@ public class ApplicationUsersController : ControllerBase
                     case FileMetadata.EStorageProvider.AWS_S3:
                         break;
                     case FileMetadata.EStorageProvider.Cloudinary:
-                        // Delete the previous one here
-                        var result = await _cloudinary.DeleteResourcesAsync(user.ProfileImage.Id);
-                        if (result.StatusCode != HttpStatusCode.OK) 
-                            _logger.LogError($"Error deleting a resource from Cloudinary, ResxId: {user.ProfileImage.Id}");
+                        await _cloudinary.DeleteResourcesAsync(profileImage.Id);
                         break;
                     default:
                         break;
@@ -213,7 +172,8 @@ public class ApplicationUsersController : ControllerBase
             };
             _context.FileMetadatas.Add(fileMetadata);
 
-            user.ProfileImage = fileMetadata;
+            // Update link
+            user.Avatar = fileMetadata.ViewLink;
 
             await _context.SaveChangesAsync();
             return Ok(uploadResult.SecureUrl?.ToString());
@@ -225,5 +185,29 @@ public class ApplicationUsersController : ControllerBase
         }
     }
 
+
+    public class UpdateBioModel
+    {
+        public string? Bio { get; set; }
+    }
+    [HttpPost("profile/bio/{UserId}")]
+    public async Task<IActionResult> Edit([FromRoute] string UserId, UpdateBioModel model)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            await _context.Users
+                .Where(u => u.Id == UserId)
+                .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(u => u.Bio, model.Bio)
+                    .SetProperty(u => u.UpdatedAt, DateTime.UtcNow)); // optional: update timestamp
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+    }
 
 }

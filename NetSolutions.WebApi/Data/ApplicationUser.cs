@@ -7,16 +7,14 @@ namespace NetSolutions.WebApi.Data;
 
 public class ApplicationUser: IdentityUser
 {
-    public string LastName { get; set; }
-    public string FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? FirstName { get; set; }
     public string? Gender { get; set; }
     public string? Bio { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-    public string? FileMetadataId { get; set; }
-    [ForeignKey(nameof(FileMetadataId))]
-    public virtual FileMetadata ProfileImage { get; set; }
+    public string? Avatar { get; set; }
+    public bool IsDeleted { get; set; }
 
     [JsonIgnore]
     public override string PasswordHash { get; set; } = "";
@@ -33,4 +31,5 @@ public class ApplicationUser: IdentityUser
     public virtual List<User_Solution> UserSolutions { get; set; }
     public virtual List<Solution_Like> LikedSolutions { get; set; }
     public virtual List<Solution_Bookmark> BookmarkedSolutions { get; set; }
+    public virtual List<SocialLink> SocialLinks { get; set; }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
+using NetSolutions.WebApi.Models.Domain;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -61,7 +62,7 @@ public class StaffController : ControllerBase
                     u.Bio,
                     u.CreatedAt,
                     u.UpdatedAt,
-                    Avatar = u.ProfileImage.ViewLink,
+                    u.Avatar,
                     Roles = _context.UserRoles
                         .Where(ur => ur.UserId == u.Id) // Match roles by user ID
                         .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
@@ -69,7 +70,8 @@ public class StaffController : ControllerBase
                     u.Organization,
                     u.UserActivities,
                     Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                    u.Profession
+                    u.Profession,
+                    Skills = u.Skills.Select(s => s.UserSkill).ToList()
                 })
                 .ToListAsync();
             return Ok(staff);
@@ -102,7 +104,7 @@ public class StaffController : ControllerBase
                     u.Bio,
                     u.CreatedAt,
                     u.UpdatedAt,
-                    Avatar = u.ProfileImage.ViewLink,
+                    u.Avatar,
                     Roles = _context.UserRoles
                         .Where(ur => ur.UserId == u.Id) // Match roles by user ID
                         .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
@@ -110,14 +112,22 @@ public class StaffController : ControllerBase
                     u.Organization,
                     u.UserActivities,
                     Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                    u.Profession
+                    u.Profession,
+                    Skills = u.Skills.Select(s => new
+                    {
+                        s.UserSkill.Id,
+                        s.UserSkill.Name,
+                        s.UserSkill.Description,
+                        Discriminator = EF.Property<string>(s.UserSkill, "Discriminator").ToFormattedString(Casing.Pascal).Replace(nameof(Solution), ""),
+                    }).ToList(),
                 })
                 .FirstOrDefaultAsync();
             return Ok(staff);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
             throw;
         }
     }

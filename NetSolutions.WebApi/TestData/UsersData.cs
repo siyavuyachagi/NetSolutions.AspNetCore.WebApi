@@ -60,32 +60,8 @@ public class UsersData
             .RuleFor(a => a.EmailConfirmed, f => true)
             .RuleFor(a => a.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(a => a.PasswordHash, (f, a) => new PasswordHasher<Administrator>().HashPassword(a, "Administrator@123"))
-            .RuleFor(s => s.FileMetadataId, (f, s) =>
-            {
-                var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                var fileResource = new FileMetadata
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = file.FileName,
-                    ContentType = file.Type,
-                    ViewLink = file.VirtualPath,
-                    DownloadLink = file.PhysicalPath,
-                    Extension = file.Extension,
-                    Size = file.Size,
-                    StorageProvider = FileMetadata.EStorageProvider.Local
-                };
-                builder.Entity<FileMetadata>().HasData(fileResource);
-
-                var profileImage = new User_Metadata_Profile
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = s.Id,
-                    FileMetadataId = fileResource.Id,
-                };
-                builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                return fileResource.Id;
-            })
+            .RuleFor(s => s.Avatar, (f, s) =>
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
             .RuleFor(s => s.ProfessionId, f => professionsMap["Software Developer"].Id)
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
             .RuleFor(a => a.Skills, (f, a) =>
@@ -164,32 +140,8 @@ public class UsersData
             .RuleFor(a => a.EmailConfirmed, f => true)
             .RuleFor(a => a.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(a => a.PasswordHash, (f, a) => new PasswordHasher<Staff>().HashPassword(a, "Staff@123"))
-            .RuleFor(s => s.FileMetadataId, (f, s) =>
-            {
-                var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                var fileResource = new FileMetadata
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = file.FileName,
-                    ContentType = file.Type,
-                    ViewLink = file.VirtualPath,
-                    DownloadLink = file.PhysicalPath,
-                    Extension = file.Extension,
-                    Size = file.Size,
-                    StorageProvider = FileMetadata.EStorageProvider.Local
-                };
-                builder.Entity<FileMetadata>().HasData(fileResource);
-
-                var profileImage = new User_Metadata_Profile
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = s.Id,
-                    FileMetadataId = fileResource.Id,
-                };
-                builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                return fileResource.Id;
-            })
+            .RuleFor(s => s.Avatar, (f, s) =>
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1,100)}.jpg")
             .RuleFor(s => s.ProfessionId, f => f.PickRandom(Seed.Professions).Id)
             .RuleFor(s => s.Skills, (f, s) =>
             {
@@ -246,32 +198,8 @@ public class UsersData
             .RuleFor(s => s.EmailConfirmed, f => true)
             .RuleFor(s => s.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(s => s.PasswordHash, (f, s) => new PasswordHasher<Developer>().HashPassword(s, "Developer@123"))
-            .RuleFor(s => s.FileMetadataId, (f, s) =>
-            {
-                var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                var fileResource = new FileMetadata
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = file.FileName,
-                    ContentType = file.Type,
-                    ViewLink = file.VirtualPath,
-                    DownloadLink = file.PhysicalPath,
-                    Extension = file.Extension,
-                    Size = file.Size,
-                    StorageProvider = FileMetadata.EStorageProvider.Local
-                };
-                builder.Entity<FileMetadata>().HasData(fileResource);
-
-                var profileImage = new User_Metadata_Profile
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = s.Id,
-                    FileMetadataId = fileResource.Id,
-                };
-                builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                return fileResource.Id;
-            })
+            .RuleFor(s => s.Avatar, (f, s) =>
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
             .RuleFor(s => s.ProfessionId, f =>
             {
                 return f.PickRandom(professionsMap["Software Developer"].Id, professionsMap["Frontend Developer"].Id);
@@ -344,32 +272,6 @@ public class UsersData
             .RuleFor(s => s.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(s => s.PasswordHash, (f, s) => new PasswordHasher<Designer>().HashPassword(s, "Designer@123"))
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
-            .RuleFor(s => s.FileMetadataId, (f, s) =>
-            {
-                var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                var fileResource = new FileMetadata
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = file.FileName,
-                    ContentType = file.Type,
-                    ViewLink = file.VirtualPath,
-                    DownloadLink = file.PhysicalPath,
-                    Extension = file.Extension,
-                    Size = file.Size,
-                    StorageProvider = FileMetadata.EStorageProvider.Local
-                };
-                builder.Entity<FileMetadata>().HasData(fileResource);
-
-                var profileImage = new User_Metadata_Profile
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = s.Id,
-                    FileMetadataId = fileResource.Id,
-                };
-                builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                return fileResource.Id;
-            })
             .RuleFor(s => s.ProfessionId, f =>
             {
                 return f.PickRandom(professionsMap["Graphic Designer"].Id, professionsMap["Frontend Developer"].Id);
@@ -433,32 +335,8 @@ public class UsersData
             .RuleFor(c => c.EmailConfirmed, f => true)
             .RuleFor(c => c.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(c => c.PasswordHash, (f, c) => new PasswordHasher<Client>().HashPassword(c, "Client@123"))
-            .RuleFor(s => s.FileMetadataId, (f, s) =>
-            {
-                var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                var fileResource = new FileMetadata
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = file.FileName,
-                    ContentType = file.Type,
-                    ViewLink = file.VirtualPath,
-                    DownloadLink = file.PhysicalPath,
-                    Extension = file.Extension,
-                    Size = file.Size,
-                    StorageProvider = FileMetadata.EStorageProvider.Local
-                };
-                builder.Entity<FileMetadata>().HasData(fileResource);
-
-                var profileImage = new User_Metadata_Profile
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = s.Id,
-                    FileMetadataId = fileResource.Id,
-                };
-                builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                return fileResource.Id;
-            })
+            .RuleFor(s => s.Avatar, (f, s) =>
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
             .RuleFor(c => c.OrganizationId, (f, c) =>
             {
                 switch (f.PickRandom(true, false))
@@ -520,32 +398,8 @@ public class UsersData
                 .RuleFor(u => u.EmailConfirmed, f => true)
                 .RuleFor(u => u.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
                 .RuleFor(u => u.PasswordHash, (f, u) => new PasswordHasher<GuestUser>().HashPassword(u, "GuestUser@123"))
-                .RuleFor(s => s.ProfileImage, (f, s) =>
-                {
-                    var file = f.PickRandom(FilesManager.GetImagesFromTestDir());
-
-                    var fileResource = new FileMetadata
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = file.FileName,
-                        ContentType = file.Type,
-                        ViewLink = file.VirtualPath,
-                        DownloadLink = file.PhysicalPath,
-                        Extension = file.Extension,
-                        Size = file.Size,
-                        StorageProvider = FileMetadata.EStorageProvider.Local
-                    };
-                    builder.Entity<FileMetadata>().HasData(fileResource);
-
-                    var profileImage = new User_Metadata_Profile
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = s.Id,
-                        FileMetadataId = fileResource.Id,
-                    };
-                    builder.Entity<User_Metadata_Profile>().HasData(profileImage);
-                    return null;
-                })
+                .RuleFor(s => s.Avatar, (f, s) =>
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
                 .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
                 .Generate(5)
                 .ToList();
