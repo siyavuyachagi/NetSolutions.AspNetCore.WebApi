@@ -50,7 +50,7 @@ logs/
 
 # Azure & Deployment
 Azure/
-wwwroot/DevFiles
+wwwroot/DevFiles/
 publish/
 *.pubxml
 *.publishsettings
