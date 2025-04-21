@@ -1,7 +1,7 @@
 # ASP.NET Web API
 
 ## Overview
-**This** is a robust and secure backend service designed to power the Client Portal, a Vue.js application built with the Composition API. This API provides authentication, data management, and communication functionalities essential for seamless user interactions.
+**NetSolutions API** is a robust and secure backend service designed to power the Client Portal, a Vue.js application built with the Composition API. This API provides authentication, data management, document handling, and communication functionalities essential for seamless user experiences.
 
 ## Features
 - **User Authentication & Authorization**
@@ -23,19 +23,50 @@
   - Secure communication channels between users
   - Email and push notifications
 
-## Tech Stack
-- **Backend Framework:** ASP.NET Core Web API
-- **Database:** SQL Server / PostgreSQL
-- **Authentication:** JWT with ASP.NET Identity
-- **Caching:** Redis
-- **Storage:**
-  - Azure Blob Storage (for documents)
-  - **Cloudinary** (for images and media)
-  - **Google Drive** (alternative storage solution for files)
-- **Logging & Monitoring:** Serilog & Application Insights
-- **Deployment:** Docker & Kubernetes (optional)
+## 🧹 Tech Stack
 
-## API Endpoints
+### 🔧 Core Frameworks & ORM
+- **Backend Framework:** ASP.NET Core Web API
+- **ORM:** Entity Framework Core (SQL Server / SQLite)
+- **Authentication:** ASP.NET Identity with JWT
+
+> 🛠️ Key NuGet Packages:
+> - Microsoft.AspNetCore.Authentication.JwtBearer
+> - Microsoft.AspNetCore.Identity.EntityFrameworkCore
+> - Microsoft.EntityFrameworkCore.SqlServer
+> - Microsoft.EntityFrameworkCore.Sqlite
+
+### 🧠 Utilities
+- **Object Mapping:** AutoMapper
+- **Test Data Generation:** Bogus
+
+### 🧵 Caching & State Management
+- **Redis:** via Microsoft.Extensions.Caching.StackExchangeRedis
+
+### ☁️ Cloud Storage
+- **Media Hosting:** Cloudinary
+- **File Storage:** Google Drive API
+
+### 📧 Emailing & Templates
+- **SMTP & MIME Handling:** MailKit, MimeKit
+- **Templating Engine:** RazorLight
+
+### 📜 API Documentation
+- **Swagger UI:** Swashbuckle.AspNetCore
+
+### 🌱 Configuration Management
+- **Environment Variable Support:** dotenv.net
+
+### 📈 Logging & Monitoring
+- **Logging:** Serilog
+- **Telemetry:** Application Insights
+
+### 🚢 Deployment
+- **Containerization:** Docker
+- **Orchestration (Optional):** Kubernetes
+
+## 📡 API Endpoints
+
 | Endpoint                   | Method | Description                           | Authentication |
 |----------------------------|--------|---------------------------------------|----------------|
 | `/api/auth/login`          | POST   | Authenticate user and return JWT     | No             |
@@ -49,36 +80,17 @@
 | `/api/documents/upload`    | POST   | Upload a document                    | Yes            |
 | `/api/notifications`       | GET    | Fetch notifications                  | Yes            |
 
-## Development Setup
+## 🛠 Development Setup
+
 ### Prerequisites
 - .NET SDK 7.0+
 - SQL Server / PostgreSQL
 - Redis (for caching, optional)
 - Node.js (for frontend integration testing)
 
-### Running Locally
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/your-username/client-portal-api.git
-   cd client-portal-api
-   ```
-2. Set up environment variables (`appsettings.json` or `.env` file for local development).
-3. Run database migrations:
-   ```sh
-   dotnet ef database update
-   ```
-4. Start the API:
-   ```sh
-   dotnet run
-   ```
+---
 
-## Deployment
-### Staging & Production
-Deployment guides for **Azure**, **AWS**, and **Docker-based environments** are available in the [Deployment Guide](./DEPLOYMENT.md).
-
-## Contributing
-Contributions are welcome! See the [Development Guide](./DEVELOPMENT.md) for coding standards and contribution guidelines.
-
-## License
+## 📄 License
 This project is licensed under the **MIT License**.
+
 
