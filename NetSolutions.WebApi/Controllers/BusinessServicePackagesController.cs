@@ -1,4 +1,5 @@
-﻿using Google.Apis.Drive.v3.Data;
+﻿using AutoMapper;
+using Google.Apis.Drive.v3.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using NetSolutions.Models.Enums;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Models.DTOs;
 using NetSolutions.WebApi.Repositories;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
@@ -32,7 +34,7 @@ public class BusinessServicePackagesController : ControllerBase
     private readonly IPayFast _payFast;
     private readonly PayFastCreds _payFastCreds;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IBusinessServicePackagesRepository _businessServicePackagesRepository;
+    private readonly IMapper _mapper;
 
     public BusinessServicePackagesController(
         UserManager<ApplicationUser> userManager,
@@ -47,7 +49,7 @@ public class BusinessServicePackagesController : ControllerBase
         IPayFast payFast,
         PayFastCreds payFastCreds,
         IHostEnvironment hostEnvironment,
-        IBusinessServicePackagesRepository businessServicePackagesRepository)
+        IMapper mapper)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -61,7 +63,7 @@ public class BusinessServicePackagesController : ControllerBase
         _payFast = payFast;
         _payFastCreds = payFastCreds;
         _hostEnvironment = hostEnvironment;
-        _businessServicePackagesRepository = businessServicePackagesRepository;
+        _mapper = mapper;
     }
 
 
@@ -70,8 +72,14 @@ public class BusinessServicePackagesController : ControllerBase
     {
         try
         {
-            var result = await _businessServicePackagesRepository.GetBusinessServicePackagesAsync();
-            return Ok(result.Response);
+            var businessServicesPackages = await _context.BusinessServicePackages
+                .Include(x => x.BusinessService)
+                .Include(x => x.BusinessServicePackageFeatures)
+                .Include(x => x.Subscriptions)
+                .ToListAsync();
+
+            var businessServicePackagesDto = _mapper.Map<List<BusinessServicePackageDto>>(businessServicesPackages);
+            return Ok(businessServicePackagesDto);
         }
         catch (Exception ex)
         {
@@ -86,8 +94,15 @@ public class BusinessServicePackagesController : ControllerBase
     {
         try
         {
-            var result = await _businessServicePackagesRepository.GetBusinessServicePackageAsync(Id);
-            return Ok(result.Response);
+            var businessServicesPackage = await _context.BusinessServicePackages
+                .Where(x => x.Id == Id)
+                .Include(x => x.BusinessService)
+                .Include(x => x.BusinessServicePackageFeatures)
+                .Include(x => x.Subscriptions)
+                .ToListAsync();
+
+            var businessServicePackageDto = _mapper.Map<BusinessServicePackageDto>(businessServicesPackage);
+            return Ok(businessServicePackageDto);
         }
         catch (Exception ex)
         {

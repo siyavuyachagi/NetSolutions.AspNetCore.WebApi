@@ -17,15 +17,17 @@ public class Seed
     public static List<BusinessService> BusinessServices { get; set; } = new List<BusinessService>();
     public static List<BusinessServicePackage> BusinessServicePackages { get; set; } = new List<BusinessServicePackage>();
     public static List<BusinessServicePackageFeature> BusinessServicePackageFeatures { get; set; } = new List<BusinessServicePackageFeature>();
-    public static List<BusinessService_FileMetadata_Thumbnail> BusinessService_FileMetadata_Thumbnails { get; set; } = new List<BusinessService_FileMetadata_Thumbnail>();
+    //public static List<BusinessService_FileMetadata_Thumbnail> BusinessService_FileMetadata_Thumbnails { get; set; } = new List<BusinessService_FileMetadata_Thumbnail>();
     public static List<BusinessService_Testimonial> BusinessService_Testimonials { get; set; } = new List<BusinessService_Testimonial>();
+    public static List<Organization> Organizations { get; set; } = new List<Organization>();
     public static List<IdentityRole> IdentityRoles { get; set; } = new List<IdentityRole>();
     public static List<TechnologyStack> TechnologyStacks { get; set; } = new List<TechnologyStack>();
     public static List<TechnicalSkill> TechnicalSkills { get; set; } = new List<TechnicalSkill>();
-    public static List<TeamMember> TeamMembers { get; set; } = new List<TeamMember>();
-    public static List<TeamMember_TeamMemberRole> TeamMember_TeamMemberRoles { get; set; } = new List<TeamMember_TeamMemberRole>();
+    public static List<ProjectTeamMember> ProjectTeamMembers { get; set; } = new List<ProjectTeamMember>();
+    public static List<ProjectTeamMember_TeamMemberRole> ProjectTeamMember_TeamMemberRoles { get; set; } = new List<ProjectTeamMember_TeamMemberRole>();
     public static List<Testimonial> Testimonials { get; set; } = new List<Testimonial>();
     public static List<SoftSkill> SoftSkills { get; set; } = new List<SoftSkill>();
+    public static List<SocialLink> SocialLinks { get; set; } = new List<SocialLink>();
     public static List<UserSkill> UserSkills { get; set; } = new List<UserSkill>();
     public static List<Staff> Staffs { get; set; } = new List<Staff>();
     public static List<GuestUser> GuestUsers { get; set; } = new List<GuestUser>();
@@ -44,6 +46,7 @@ public class Seed
     public static List<ProjectTask> ProjectTasks { get; set; } = new List<ProjectTask>();
     public static List<TeamMemberRole> TeamMemberRoles { get; set; } = new List<TeamMemberRole>();
     public static List<Project> Projects { get; set; } = new List<Project>();
+    public static List<PhysicalAddress> PhysicalAddresses { get; set; } = new List<PhysicalAddress>();
     public static List<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     public static List<Project_TechnologyStack> Project_TechnologyStacks { get; set; } = new List<Project_TechnologyStack>();
     public static List<Solution_TechnologyStack> Solution_TechnologyStacks { get; set; } = new List<Solution_TechnologyStack>();
@@ -54,6 +57,7 @@ public class Seed
 
     public static void Init(ModelBuilder builder)
     {
+        NetSolutionsProfileData.GenerateBusinessProfileData(builder);
         BusinessServicesData.GenerateServices(builder);
         TechnologyStackData.GenerateTechnologyStacks(builder);
         UserRolesData.GenerateUserRoles(builder);

@@ -31,23 +31,23 @@ public class SolutionsData
                                 .RuleFor(s => s.SourceUrl, f => f.Internet.Url())
                                 .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                                 .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
-                                .RuleFor(s => s.Documents, (f, s) =>
+                                .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
                                 {
                                     GenerateSolutionFiles(builder, s, s.ProjectId);
                                     return null;
                                 })
-                                .RuleFor(s => s.TechnologyStacks, (f, s) =>
+                                .RuleFor(s => s.Solution_TechnologyStacks, (f, s) =>
                                 {
                                     GenerateSolutionStack(builder, s, s.ProjectId);
                                     return null;
                                 })
-                                .RuleFor(s => s.Images, (f, s) =>
+                                .RuleFor(s => s.Solution_FileMetadata_Images, (f, s) =>
                                 {
-                                    var files = FilesManager.GetDirFiles("DevFiles/graphic-design");
+                                    var files = FilesManager.GetDirFiles("_development_files/graphic-design");
                                     GenerateSolutionImages(builder, s, files);
                                     return null;
                                 })
-                                .RuleFor(s => s.Reviews, (f, s) =>
+                                .RuleFor(s => s.Solution_Reviews, (f, s) =>
                                 {
                                     GenerateSolutionReviews(builder, s);
                                     return null;
@@ -78,23 +78,23 @@ public class SolutionsData
                             .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                             .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
                             .RuleFor(s => s.ProjectTeamId, (f, s) => Seed.ProjectTeams.Where(pt => pt.ProjectId == project.Id).FirstOrDefault().Id)
-                            .RuleFor(s => s.Documents, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
                             {
                                 GenerateSolutionFiles(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.TechnologyStacks, (f, s) =>
+                            .RuleFor(s => s.Solution_TechnologyStacks, (f, s) =>
                             {
                                 GenerateSolutionStack(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.Images, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Images, (f, s) =>
                             {
-                                var files = FilesManager.GetDirFiles("DevFiles/mobile-dev");
+                                var files = FilesManager.GetDirFiles("_development_files/mobile-dev");
                                 GenerateSolutionImages(builder, s, files);
                                 return null;
                             })
-                            .RuleFor(s => s.Reviews, (f, s) =>
+                            .RuleFor(s => s.Solution_Reviews, (f, s) =>
                             {
                                 GenerateSolutionReviews(builder, s);
                                 return null;
@@ -124,23 +124,23 @@ public class SolutionsData
                             .RuleFor(s => s.SourceUrl, f => $"https://behance.net/{f.Internet.UserName()}/{f.Hacker.Noun()}")
                             .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                             .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
-                            .RuleFor(s => s.Documents, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
                             {
                                 GenerateSolutionFiles(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.TechnologyStacks, (f, s) =>
+                            .RuleFor(s => s.Solution_TechnologyStacks, (f, s) =>
                             {
                                 GenerateSolutionStack(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.Images, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Images, (f, s) =>
                             {
-                                var files = FilesManager.GetDirFiles("DevFiles/web-design");
+                                var files = FilesManager.GetDirFiles("_development_files/web-design");
                                 GenerateSolutionImages(builder, s, files);
                                 return null;
                             })
-                            .RuleFor(s => s.Reviews, (f, s) =>
+                            .RuleFor(s => s.Solution_Reviews, (f, s) =>
                             {
                                 GenerateSolutionReviews(builder, s);
                                 return null;
@@ -170,23 +170,23 @@ public class SolutionsData
                             .RuleFor(s => s.SourceUrl, f => $"https://github.com/{_faker.Internet.UserName()}/{_faker.Hacker.Noun()}-web")
                             .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                             .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
-                            .RuleFor(s => s.Documents, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
                             {
                                 GenerateSolutionFiles(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.TechnologyStacks, (f, s) =>
+                            .RuleFor(s => s.Solution_TechnologyStacks, (f, s) =>
                             {
                                 GenerateSolutionStack(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.Images, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Images, (f, s) =>
                             {
-                                var files = FilesManager.GetDirFiles("DevFiles/web-dev");
+                                var files = FilesManager.GetDirFiles("_development_files/web-dev");
                                 GenerateSolutionImages(builder, s, files);
                                 return null;
                             })
-                            .RuleFor(s => s.Reviews, (f, s) =>
+                            .RuleFor(s => s.Solution_Reviews, (f, s) =>
                             {
                                 GenerateSolutionReviews(builder, s);
                                 return null;
@@ -216,23 +216,23 @@ public class SolutionsData
                             .RuleFor(s => s.SourceUrl, f => $"https://figma.com/@{_faker.Internet.UserName()}/{_faker.Hacker.Noun()}")
                             .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                             .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
-                            .RuleFor(s => s.Documents, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
                             {
                                 GenerateSolutionFiles(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.TechnologyStacks, (f, s) =>
+                            .RuleFor(s => s.Solution_TechnologyStacks, (f, s) =>
                             {
                                 GenerateSolutionStack(builder, s, s.ProjectId);
                                 return null;
                             })
-                            .RuleFor(s => s.Images, (f, s) =>
+                            .RuleFor(s => s.Solution_FileMetadata_Images, (f, s) =>
                             {
-                                var files = FilesManager.GetDirFiles("DevFiles/uiux-design");
+                                var files = FilesManager.GetDirFiles("_development_files/uiux-design");
                                 GenerateSolutionImages(builder, s, files);
                                 return null;
                             })
-                            .RuleFor(s => s.Reviews, (f, s) =>
+                            .RuleFor(s => s.Solution_Reviews, (f, s) =>
                             {
                                 GenerateSolutionReviews(builder, s);
                                 return null;

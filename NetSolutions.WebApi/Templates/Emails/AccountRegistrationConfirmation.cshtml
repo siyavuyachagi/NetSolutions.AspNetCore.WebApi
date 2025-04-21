@@ -6,206 +6,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirm Your Account Registration</title>
-    <style>
-        /* Base styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #1E293B; /* neutral.DEFAULT */
-            margin: 0;
-            padding: 0;
-            background-color: #f8fafc; /* neutral.50 */
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0; /* neutral.200 */
-            border-radius: 8px;
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 2px solid #7c3aed; /* primary.DEFAULT */
-        }
-
-            .header img {
-                max-height: 60px;
-                margin-bottom: 10px;
-            }
-
-        .content {
-            padding: 20px 0;
-        }
-
-        .confirmation-message {
-            font-size: 24px;
-            font-weight: bold;
-            color: #5b21b6; /* primary.700 */
-            margin-bottom: 20px;
-        }
-
-        .account-info {
-            background-color: #f5f3ff; /* primary.50 */
-            border-left: 4px solid #7c3aed; /* primary.DEFAULT */
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-
-        .button {
-            display: inline-block;
-            background-color: #7c3aed; /* primary.DEFAULT */
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-
-            .button:hover {
-                background-color: #6d28d9; /* primary.600 */
-            }
-
-        .confirmation-code {
-            background-color: #ddd6fe; /* primary.200 */
-            border: 1px solid #c4b5fd; /* primary.300 */
-            border-radius: 4px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .expiration-notice {
-            background-color: #fee2e2; /* error.100 */
-            border-left: 4px solid #f87171; /* error.DEFAULT */
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            color: #b91c1c; /* error.700 */
-        }
-
-        .steps {
-            background-color: #fffbeb; /* warning.50 */
-            border-left: 4px solid #fbbf24; /* warning.DEFAULT */
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-
-            .steps h3 {
-                color: #b45309; /* warning.700 */
-                margin-top: 0;
-            }
-
-        .footer {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0; /* neutral.200 */
-            color: #64748b; /* neutral.500 */
-            font-size: 12px;
-        }
-
-        .social-links {
-            margin: 15px 0;
-        }
-
-        .social-link {
-            display: inline-block;
-            margin: 0 10px;
-            color: #7c3aed; /* primary.DEFAULT */
-            text-decoration: none;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.8; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; -webkit-font-smoothing: antialiased;">
+    <div style="max-width: 600px; margin: 40px auto; padding: 0; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); overflow: hidden;">
+        <div style="text-align: center; padding: 28px 0; background-color: #8b5cf6; color: white;">
             @if (!string.IsNullOrEmpty(Model.LogoUrl))
             {
-                <img src="@Model.LogoUrl" alt="@Model.CompanyName Logo">
+                <img src="@Model.LogoUrl" style="max-height: 60px; margin-bottom: 10px;" />
             }
-            <h1>Confirm Your @Model.CompanyName Account</h1>
+            <h1 style="margin: 0; font-weight: 600; font-size: 24px; letter-spacing: -0.025em;">Confirm Your @Model.CompanyName Account</h1>
         </div>
 
-        <div class="content">
-            <p class="confirmation-message">Email Confirmation Required</p>
+        <div style="padding: 32px;">
+            <h2 style="font-size: 22px; font-weight: 700; color: #8b5cf6; margin: 0 0 24px 0;">Verify your email address</h2>
 
-            <p>Hello @Model.UserName,</p>
+            <p style="margin: 0 0 16px 0;">Hello @Model.UserName,</p>
 
-            <p>Thank you for registering with @Model.CompanyName. To complete your registration and activate your account, please confirm your email address by clicking the button below:</p>
+            <p style="margin: 0 0 16px 0;">Thank you for creating your @Model.CompanyName account. To complete your registration and get started, please verify your email address:</p>
 
             <center>
-                <a href="@Model.ConfirmationUrl" class="button">Confirm My Email Address</a>
+                <a href="@Model.ConfirmationUrl" style="display: inline-block; background-color: #8b5cf6; color: white; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; margin: 24px 0; transition: background-color 0.2s ease;">Verify Email Address</a>
             </center>
 
-            <p>If the button above doesn't work, you can also confirm by copying and pasting the following URL into your browser:</p>
+            <p style="margin: 0 0 16px 0;">If the button doesn't work, you can copy and paste this link into your browser:</p>
 
-            <p style="word-break: break-all; color: #5b21b6;">@Model.ConfirmationUrl</p>
+            <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 6px; padding: 12px 16px; margin: 16px 0; word-break: break-all; font-size: 14px; color: #8b5cf6;">@Model.ConfirmationUrl</div>
 
             @if (!string.IsNullOrEmpty(Model.ConfirmationCode))
             {
-                <p>Alternatively, you can use this confirmation code when prompted:</p>
+                <p style="margin: 0 0 16px 0;">You can also use this code to verify your account:</p>
+                <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 6px; padding: 16px; font-family: 'SF Mono', 'Roboto Mono', 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; text-align: center; margin: 24px 0;">@Model.ConfirmationCode</div>
+            }
 
-                <div class="confirmation-code">
-                    @Model.ConfirmationCode
+            @if (Model.ExpirationTime is not null)
+            {
+                <div style="background-color: #fee2e2; border-left: 4px solid #f87171; padding: 16px 20px; margin: 24px 0; border-radius: 6px; color: #f87171;">
+                    <p style="margin: 0;"><strong>Please note:</strong> This verification link will expire in @Model.ExpirationTime. Verify your email soon to avoid any delays.</p>
                 </div>
             }
 
-            <div class="expiration-notice">
-                <p><strong>Important:</strong> This confirmation link will expire in @Model.ExpirationTime . Please confirm your email address as soon as possible.</p>
-            </div>
-
-            <div class="steps">
-                <h3>What happens after confirmation?</h3>
-                <ul>
-                    <li>Your account will be fully activated</li>
-                    <li>You'll gain access to all features and services</li>
-                    <li>You'll receive a welcome email with additional information</li>
+            <div style="background-color: #fffbeb; border-left: 4px solid #fbbf24; padding: 16px 20px; margin: 24px 0; border-radius: 6px;">
+                <h3 style="color: #fbbf24; margin-top: 0; font-weight: 600; font-size: 16px;">What happens next?</h3>
+                <ul style="margin: 12px 0 0 0; padding-left: 24px;">
+                    <li style="margin-bottom: 8px;">Your account will be fully activated</li>
+                    <li style="margin-bottom: 8px;">You'll gain access to all features and services</li>
+                    <li style="margin-bottom: 0;">You'll receive a welcome email with helpful resources</li>
                 </ul>
             </div>
 
-            <div class="account-info">
-                <p><strong>Username:</strong> @Model.UserName</p>
-                @* <p><strong>Email:</strong> @Model.UserEmail</p> *@
-                <p><strong>Registration Date:</strong> @Model.RegistrationDate.ToString("MMMM dd, yyyy")</p>
-            </div>
+            @* <div style="background-color: #f5f3ff; border-left: 4px solid #8b5cf6; padding: 16px 20px; margin: 24px 0; border-radius: 6px;"> *@
+            @*     <p style="margin: 8px 0;"><strong>Username:</strong> @Model.UserName</p> *@
+            @*     <p style="margin: 8px 0;"><strong>Registration Date:</strong> @Model.CreatedAt.ToString("MMMM dd, yyyy")</p> *@
+            @* </div> *@
 
             @if (!string.IsNullOrEmpty(Model.SupportEmail))
             {
-                <p>If you did not create an account with @Model.CompanyName or have any questions, please contact our support team at @Model.SupportEmail.</p>
+                <p style="margin: 0 0 16px 0;">If you have any questions, contact our support team at <a href="mailto:@Model.SupportEmail" style="color: #8b5cf6; text-decoration: underline;">@Model.SupportEmail</a>.</p>
             }
 
-            <p>Thank you for choosing @Model.CompanyName!</p>
-
-            <p>Best regards,<br>The @Model.CompanyName Team</p>
+            <div style="margin-top: 32px;">
+                <p style="margin: 0 0 16px 0;">Thanks for choosing @Model.CompanyName!</p>
+                <p style="margin: 0 0 16px 0;">The @Model.CompanyName Team</p>
+            </div>
         </div>
 
-        <div class="footer">
-            <p>&copy; @DateTime.Now.Year @Model.CompanyName. All rights reserved.</p>
+        <div style="text-align: center; padding: 24px 32px; background-color: #f8fafc; color: #94a3b8; font-size: 13px; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0 0 16px 0;">&copy; @DateTime.Now.Year @Model.CompanyName. All rights reserved.</p>
 
             @if (Model.SocialLinks != null && Model.SocialLinks.Any())
             {
-                <div class="social-links">
+                <div style="margin: 16px 0;">
                     @foreach (var link in Model.SocialLinks)
                     {
-                        <a href="@link.Url" class="social-link">@link.Name</a>
+                        <a href="@link.Url" style="display: inline-block; margin: 0 8px; color: #8b5cf6; text-decoration: none; font-weight: 500;">@link.Name</a>
                     }
                 </div>
             }
 
-            <p>
-                @Model.CompanyAddress<br>
+            <p style="margin: 0 0 16px 0;">
+                @Model.CompanyAddress<br />
                 @if (!string.IsNullOrEmpty(Model.UnsubscribeUrl))
                 {
-                    <a href="@Model.UnsubscribeUrl" style="color: #64748b;">Unsubscribe</a>
+                    <span style="color: #64748b; font-size: 12px; text-decoration: underline;">
+                        <a href="@Model.UnsubscribeUrl" style="color: #64748b;">Unsubscribe</a>
+                    </span>
                 }
             </p>
         </div>

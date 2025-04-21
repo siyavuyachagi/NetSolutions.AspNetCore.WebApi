@@ -30,11 +30,11 @@ public class Solution
     public bool IsDeleted { get; set; }
 
     public virtual List<SolutionFeature> SolutionFeatures { get; set; }
-    public virtual List<User_Solution> Buyers { get; set; }
-    public virtual List<Solution_FileMetadata_Image> Images { get; set; }
-    public virtual List<Solution_FileMetadata_Document> Documents { get; set; }
-    public virtual List<Solution_Review> Reviews { get; set; }
-    public virtual List<Solution_TechnologyStack> TechnologyStacks { get; set; }
-    public virtual List<Solution_Like> Likes { get; set; }
-    public virtual List<Solution_Bookmark> Bookmarks { get; set; }
+    public virtual List<User_Solution> User_Solutions { get; set; }
+    public virtual List<Solution_FileMetadata_Image> Solution_FileMetadata_Images { get; set; }
+    public virtual List<Solution_FileMetadata_Document> Solution_FileMetadata_Documents { get; set; }
+    public virtual List<Solution_Review> Solution_Reviews { get; set; }
+    public virtual List<Solution_TechnologyStack> Solution_TechnologyStacks { get; set; }
+    public virtual List<Solution_Like> Solution_Likes { get; set; } = new();
+    public virtual List<Solution_Bookmark> Solution_Bookmarks { get; set; }
 }

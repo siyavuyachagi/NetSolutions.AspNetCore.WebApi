@@ -26,4 +26,6 @@ public class SystemLogEntry
     public string? Exception { get; set; }
     [MaxLength(4000)]
     public string? StackTrace { get; set; }
+
+    public virtual List<FileMetadata> Screenshorts { get; set; }
 }

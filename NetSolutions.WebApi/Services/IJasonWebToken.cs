@@ -9,8 +9,9 @@ using NetSolutions.Helpers;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.WebApi.Controllers;
-using NetSolutions.WebApi.Repositories;
 using NetSolutions.WebApi.Models.DTOs;
+using AutoMapper;
+using NetSolutions.WebApi.Repositories;
 
 namespace NetSolutions.Services;
 
@@ -18,8 +19,8 @@ namespace NetSolutions.Services;
 public interface IJasonWebToken
 {
     Task<Result<string>> GenerateRefreshToken(string userId);
-    Task<Result<TokenResponse>> GenerateTokens(ApplicationUserDto userDto, HttpRequest request);
-    Task<Result<TokenResponse>> RefreshToken(string refreshToken, HttpRequest request);
+    Task<Result<AuthResponseDto>> GenerateTokens(string userId, HttpRequest request);
+    Task<Result<AuthResponseDto>> RefreshToken(string refreshToken, HttpRequest request);
     int RefreshTokenExpirationMinutes { get; }
 }
 #endregion
@@ -28,11 +29,14 @@ public interface IJasonWebToken
 #region Implementation
 public class JasonWebToken : IJasonWebToken
 {
-    private readonly ApplicationDbContext _db;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<IJasonWebToken> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtSettings _jwtSettings;
+    private readonly IMapper _mapper;
     private readonly IApplicationUserRepository _applicationUserRepository;
+
+
     public JasonWebToken(
         ApplicationDbContext dbContext,
         ILogger<IJasonWebToken> logger,
@@ -40,7 +44,7 @@ public class JasonWebToken : IJasonWebToken
         JwtSettings jwtSettings,
         IApplicationUserRepository applicationUserRepository)
     {
-        _db = dbContext;
+        _context = dbContext;
         _logger = logger;
         _userManager = userManager;
         _jwtSettings = jwtSettings;
@@ -73,8 +77,8 @@ public class JasonWebToken : IJasonWebToken
                     IsUsed = false,
                     IsRevoked = false
                 };
-                _db.RefreshTokens.Add(refreshToken);
-                await _db.SaveChangesAsync();
+                _context.RefreshTokens.Add(refreshToken);
+                await _context.SaveChangesAsync();
 
                 return Result.Success(token);
             }
@@ -87,20 +91,24 @@ public class JasonWebToken : IJasonWebToken
 
     #endregion
 
-    public async Task<Result<TokenResponse>> GenerateTokens(ApplicationUserDto userDto, HttpRequest request)
+    public async Task<Result<AuthResponseDto>> GenerateTokens(string userId, HttpRequest request)
     {
         try
         {
+            var user = await _applicationUserRepository.GetApplicationUserAsync(userId);
+
+            if (user is null) return Result.Failed<AuthResponseDto>($"User: {userId} not found.");
+
             // Create the initial claims
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userDto.Id),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, userDto.UserName)
+                new Claim(ClaimTypes.Name, user.UserName)
             };
 
             // Add role claims
-            foreach (var role in userDto.Roles)
+            foreach (var role in user.UserRoles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -121,54 +129,52 @@ public class JasonWebToken : IJasonWebToken
 
             // Return the serialized token
             var serializedToken = new JwtSecurityTokenHandler().WriteToken(token);
-            var refreshTokenResult = await GenerateRefreshToken(userDto.Id);
+            var refreshTokenResult = await GenerateRefreshToken(userId);
             if (!refreshTokenResult.Succeeded) throw new Exception("Error generating refresh token");
 
 
-            var tokensResponse = new TokenResponse
+            var tokensResponse = new AuthResponseDto
             {
                 AccessToken = serializedToken,
                 RefreshToken = refreshTokenResult.Response,
-                User = userDto
+                ApplicationUser = _mapper.Map<ApplicationUserDto>(user)
             };
             return Result.Success(tokensResponse);
         }
         catch (Exception ex)
         {
-            return Result.Failed<TokenResponse>(ex.Message);
+            return Result.Failed<AuthResponseDto>(ex.Message);
         }
     }
 
 
-    public async Task<Result<TokenResponse>> RefreshToken(string refreshToken, HttpRequest request)
+    public async Task<Result<AuthResponseDto>> RefreshToken(string refreshToken, HttpRequest request)
     {
         try
         {
             // Retrieve the stored refresh token
-            var storedRefreshToken = await _db.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            var storedRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
             if (storedRefreshToken == null || storedRefreshToken.IsUsed || storedRefreshToken.IsRevoked)
-                return Result.Failed<TokenResponse>("Invalid refresh token.");
+                return Result.Failed<AuthResponseDto>("Invalid refresh token.");
 
             // Check if token has expired
             if (storedRefreshToken.ExpiryDate < DateTime.UtcNow)
-                return Result.Failed<TokenResponse>("Session expired.");
+                return Result.Failed<AuthResponseDto>("Session expired.");
 
             // Mark the token as used
             storedRefreshToken.IsUsed = true;
-            _db.RefreshTokens.Update(storedRefreshToken);
-            await _db.SaveChangesAsync();
+            _context.RefreshTokens.Update(storedRefreshToken);
+            await _context.SaveChangesAsync();
 
             // Generate a new JWT Access & Refresh tokens
-            var userResult = await _applicationUserRepository.GetApplicationUserAsync(storedRefreshToken.UserId);
-            if(userResult.Response is null) throw new Exception($"User: {storedRefreshToken.UserId}, cannot be found!");
-            var tokensResult = await GenerateTokens(userResult.Response, request);
+            var result = await GenerateTokens(storedRefreshToken.UserId, request);
 
-            return Result.Success(tokensResult.Response);
+            return Result.Success(result.Response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            return Result.Failed<TokenResponse>(ex.Message);
+            return Result.Failed<AuthResponseDto>(ex.Message);
         }
     }
 }
@@ -186,14 +192,6 @@ public class JwtSettings
     public string[] Audiences { get; set; }
     public int TokenExpirationMinutes { get; set; }
     public int RefreshTokenExpirationMinutes { get; set; }
-}
-
-
-public class TokenResponse
-{
-    public string AccessToken { get; set; }
-    public string RefreshToken { get; set; }
-    public ApplicationUserDto User { get; set; }
 }
 
 #endregion

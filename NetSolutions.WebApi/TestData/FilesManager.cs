@@ -28,7 +28,7 @@ public class FilesManager
         string projectDirectory = FilesHelper.GetProjectRootDirectory();
 
         // Combine with the relative path
-        string relativePath = "DevFiles";
+        string relativePath = "_development_files";
         string directoryPath = Path.Combine(projectDirectory, "wwwroot", relativePath);
 
         var testFiles = new List<TestFile>();

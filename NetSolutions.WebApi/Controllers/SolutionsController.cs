@@ -36,7 +36,7 @@ public class SolutionsController : ControllerBase
     private readonly JwtSettings _jwtSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IRedisCache _redisCache;
-    private readonly ISolutionsRepository _solutionsRepository;
+    private readonly ISolutionRepository _solutionsRepository;
     private const string SOLUTIONS_CACHE_KEY = "solutions_list_cache";
 
     public SolutionsController(
@@ -53,7 +53,7 @@ public class SolutionsController : ControllerBase
         JwtSettings jwtSettings,
         IHostEnvironment hostEnvironment,
         IRedisCache redisCache,
-        ISolutionsRepository solutionsRepository)
+        ISolutionRepository solutionsRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -77,9 +77,8 @@ public class SolutionsController : ControllerBase
     {
         try
         {
-                var result = await _solutionsRepository.GetSolutionsAsync();
-                if (!result.Succeeded) return NotFound(result.Errors);
-                return Ok(result.Response);
+            var solutions = await _solutionsRepository.GetSolutionsAsync();
+            return Ok(solutions);
         }
         catch (Exception ex)
         {
@@ -94,9 +93,8 @@ public class SolutionsController : ControllerBase
     {
         try
         {
-            var result = await _solutionsRepository.GetSolutionAsync(Id);
-            if (!result.Succeeded) return NotFound(result.Errors);
-            return Ok(result.Response);
+            var solution = await _solutionsRepository.GetSolutionAsync(Id);
+            return Ok(solution);
         }
         catch (Exception ex)
         {
@@ -532,7 +530,7 @@ public class SolutionsController : ControllerBase
 
             var solution = await _context.Solutions
                 .Where(s => s.Id == Id)
-                .Include(s => s.Likes)
+                .Include(s => s.Solution_Likes)
                 .FirstOrDefaultAsync();
 
             if (solution is null)
@@ -540,16 +538,16 @@ public class SolutionsController : ControllerBase
                 return NotFound($"Solution: {Id} not found!");
             }
 
-            if (solution.Likes.Any(l => l.LikerId == model.UserId))
+            if (solution.Solution_Likes.Any(l => l.LikerId == model.UserId))
             {
-                var like = solution.Likes
+                var like = solution.Solution_Likes
                     .Where(l => l.LikerId == model.UserId)
                     .FirstOrDefault();
-                solution.Likes.Remove(like);
+                solution.Solution_Likes.Remove(like);
             }
             else
             {
-                solution.Likes.Add(new Solution_Like
+                solution.Solution_Likes.Add(new Solution_Like
                 {
                     LikerId = model.UserId,
                 });
@@ -565,51 +563,51 @@ public class SolutionsController : ControllerBase
         }
     }
 
-    public class BookmarkModel
-    {
-        public string UserId { get; set; }
-    }
-    [HttpPost("bookmark/{Id}")]
-    public async Task<IActionResult> Bookmark([FromRoute] Guid Id, BookmarkModel model)
-    {
-        try
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+    //public class BookmarkModel
+    //{
+    //    public string UserId { get; set; }
+    //}
+    //[HttpPost("bookmark/{Id}")]
+    //public async Task<IActionResult> Bookmark([FromRoute] Guid Id, BookmarkModel model)
+    //{
+    //    try
+    //    {
+    //        if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var solution = await _context.Solutions
-                .Where(s => s.Id == Id)
-                .Include(s => s.Bookmarks)
-                .FirstOrDefaultAsync();
+    //        var solution = await _context.Solutions
+    //            .Where(s => s.Id == Id)
+    //            .Include(s => s.Solution_Bookmarks)
+    //            .FirstOrDefaultAsync();
 
-            if (solution is null)
-            {
-                return NotFound($"Solution: {Id} not found!");
-            }
+    //        if (solution is null)
+    //        {
+    //            return NotFound($"Solution: {Id} not found!");
+    //        }
 
-            if (solution.Bookmarks.Any(b => b.BookmakerId == model.UserId))
-            {
-                var bookmark = solution.Bookmarks
-                    .Where(b => b.BookmakerId == model.UserId)
-                    .FirstOrDefault();
-                solution.Bookmarks.Remove(bookmark);
-            }
-            else
-            {
-                solution.Bookmarks.Add(new Solution_Bookmark
-                {
-                    BookmakerId = model.UserId,
-                });
-            }
+    //        if (solution.Solution_Bookmarks.Any(b => b.BookmakerId == model.UserId))
+    //        {
+    //            var bookmark = solution.Bookmarks
+    //                .Where(b => b.BookmakerId == model.UserId)
+    //                .FirstOrDefault();
+    //            solution.Bookmarks.Remove(bookmark);
+    //        }
+    //        else
+    //        {
+    //            solution.Bookmarks.Add(new Solution_Bookmark
+    //            {
+    //                BookmakerId = model.UserId,
+    //            });
+    //        }
 
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.Message);
-            return StatusCode(500, ex.Message);
-        }
-    }
+    //        await _context.SaveChangesAsync();
+    //        return Ok();
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, ex.Message);
+    //        return StatusCode(500, ex.Message);
+    //    }
+    //}
 
     public class CreateSolutionModel
     {
@@ -662,8 +660,7 @@ public class SolutionsController : ControllerBase
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            await _solutionsRepository.DeleteSolutionAsync(Id);
-            return NoContent();
+            return Ok();
         }
         catch (Exception ex)
         {
@@ -671,5 +668,4 @@ public class SolutionsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
-
 }

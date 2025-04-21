@@ -1,4 +1,5 @@
-﻿using Google.Apis.Drive.v3.Data;
+﻿using AutoMapper;
+using Google.Apis.Drive.v3.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Models.DTOs;
 using NetSolutions.WebApi.Repositories;
 using NetSolutions.WebApi.Services;
 using System.ComponentModel.DataAnnotations;
@@ -28,7 +30,7 @@ namespace NetSolutions.WebApi.Controllers
         private readonly SmtpSettings _smtpSettings;
         private readonly JwtSettings _jwtSettings;
         private readonly IPayFast _payFast;
-        private readonly IBusinessServiceRepository _businessServiceRepository;
+        private readonly IMapper _mapper;
 
         public BusinessServicesController(
             UserManager<ApplicationUser> userManager,
@@ -41,7 +43,7 @@ namespace NetSolutions.WebApi.Controllers
             SmtpSettings smtpSettings,
             JwtSettings jwtSettings,
             IPayFast payFast,
-            IBusinessServiceRepository businessServiceRepository)
+            IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -53,7 +55,7 @@ namespace NetSolutions.WebApi.Controllers
             _smtpSettings = smtpSettings;
             _jwtSettings = jwtSettings;
             _payFast = payFast;
-            _businessServiceRepository = businessServiceRepository;
+            _mapper = mapper;
         }
 
 
@@ -62,8 +64,15 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                var result = await _businessServiceRepository.GetBusinessServicesAsync();
-                return Ok(result.Response);
+                var businessServices = await _context.BusinessServices
+                    .AsNoTrackingWithIdentityResolution()
+                    .Include(x => x.Thumbnail)
+                    .Include(x => x.Testimonials)
+                    .Include(x => x.BusinessServicePackages)
+                    .ToListAsync();
+
+                var response = _mapper.Map<List<BusinessServiceDto>>(businessServices);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -80,8 +89,16 @@ namespace NetSolutions.WebApi.Controllers
             {
                 if (!ModelState.IsValid) return NotFound();
 
-                var result = await _businessServiceRepository.GetBusinessServiceAsync(Id);
-                return Ok(result.Response);
+                var businessService = await _context.BusinessServices
+                    .AsNoTrackingWithIdentityResolution()
+                    .Where(x => x.Id == Id)
+                    .Include(x => x.Thumbnail)
+                    .Include(x => x.Testimonials)
+                    .Include(x => x.BusinessServicePackages)
+                    .ToListAsync();
+
+                var response = _mapper.Map<BusinessServiceDto>(businessService);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -97,8 +114,11 @@ namespace NetSolutions.WebApi.Controllers
         {
             try
             {
-                await _businessServiceRepository.DeleteBusinessServiceAsync(Id);
-                return NoContent();
+                await _context.BusinessServices
+                    .Where(x => x.Id == Id)
+                    .ExecuteDeleteAsync();
+
+                return Ok();
             }
             catch (Exception ex)
             {

@@ -11,13 +11,13 @@ public class ProjectDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string Status { get; set; }
-    public BusinessService BusinessService { get; set; }
-    public Client Client { get; set; }
-    public List<ProjectTask> ProjectTasks { get; set; }
-    public List<ProjectMilestone> ProjectMilestones { get; set; }
-    public List<Solution> Solutions { get; set; }
-    public List<FileMetadata> Documents { get; set; }
-    public List<TechnologyStack> TechnologyStacks { get; set; }
+    public BusinessServiceDto? BusinessService { get; set; }
+    public ClientDto Client { get; set; }
     public ProjectTeamDto ProjectTeam { get; set; }
+    public List<FileMetadataDto> Documents { get; set; }
+    public List<ProjectTaskDto> ProjectTasks { get; set; }
+    public List<ProjectMilestoneDto> ProjectMilestones { get; set; }
+    public List<TechnologyStackDto> TechnologyStacks { get; set; }
+    public List<SolutionDto> Solutions { get; set; }
     public string Discriminator { get; set; }
 }

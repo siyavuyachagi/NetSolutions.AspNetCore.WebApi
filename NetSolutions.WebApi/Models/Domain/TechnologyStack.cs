@@ -94,7 +94,8 @@ public class TechnologyStack
     public string Name { get; set; }
     public string? Description { get; set; }
     public string? NameAbbr { get; set; }
-    public string? Icon16x16 { get; set; }
+    public string? IconUrl { get; set; }
+    public string? IconHTML { get; set; }
     public EType Type { get; set; }  // Added Type property
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime ModifiedAt { get; set; } = DateTime.Now;

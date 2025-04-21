@@ -37,7 +37,7 @@ public class TeamMemberRolesData
             Seed.TeamMemberRoles.AddRange(projectRoles);
             builder.Entity<TeamMemberRole>().HasData(projectRoles);
 
-            Console.WriteLine("GenerateProjectTeamMemberRoles Complete");
+            Console.WriteLine($"ProjectTeamMemberRoles generated: {Seed.TeamMemberRoles.Count()}");
         }
         catch (Exception ex)
         {

@@ -18,8 +18,10 @@ public class SocialLink
     public virtual Organization Organization { get; set; }
 
     public string Name { get; set; }
-    public string? Url { get; set; }
-    public string? Handler { get; set; }
+    public string Url { get; set; }
+    public string Handler { get; set; }
+    public string? IconHTML { get; set; }
+    public string? IconUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }

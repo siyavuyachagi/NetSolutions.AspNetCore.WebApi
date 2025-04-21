@@ -1,0 +1,36 @@
+/* Coolors Exported Palette - https://coolors.co/073b4c-06d6a0-ef476f-118ab2-ffd166-d6d6d6 */
+
+- Tailwind
+
+{ 'midnight_green': { DEFAULT: '#073b4c', 100: '#010c0f', 200: '#03171e', 300: '#04232d', 400: '#062e3c', 500: '#073b4c', 600: '#0e7699', 700: '#16b3e7', 800: '#62cdf0', 900: '#b1e6f8' }, 'emerald': { DEFAULT: '#06d6a0', 100: '#012b20', 200: '#02563f', 300: '#03805f', 400: '#04ab7f', 500: '#06d6a0', 600: '#1cf9be', 700: '#55fbce', 800: '#8efcdf', 900: '#c6feef' }, 'bright_pink_(crayola)': { DEFAULT: '#ef476f', 100: '#390511', 200: '#720a22', 300: '#ac0f34', 400: '#e51445', 500: '#ef476f', 600: '#f26d8c', 700: '#f591a9', 800: '#f9b6c5', 900: '#fcdae2' }, 'blue_(ncs)': { DEFAULT: '#118ab2', 100: '#031b23', 200: '#073747', 300: '#0a526a', 400: '#0d6e8e', 500: '#118ab2', 600: '#18b5e9', 700: '#51c8ef', 800: '#8bdaf4', 900: '#c5edfa' }, 'sunglow': { DEFAULT: '#ffd166', 100: '#473200', 200: '#8f6400', 300: '#d69600', 400: '#ffbc1f', 500: '#ffd166', 600: '#ffda85', 700: '#ffe3a3', 800: '#ffedc2', 900: '#fff6e0' }, 'timberwolf': { DEFAULT: '#D6D6D6', 100: '#2b2b2b', 200: '#565656', 300: '#818181', 400: '#ababab', 500: '#d6d6d6', 600: '#dedede', 700: '#e7e7e7', 800: '#efefef', 900: '#f7f7f7' } }
+
+- CSV
+
+073b4c,06d6a0,ef476f,118ab2,ffd166,D6D6D6
+
+- With #
+
+#073b4c, #06d6a0, #ef476f, #118ab2, #ffd166, #D6D6D6
+
+- Array
+
+["073b4c","06d6a0","ef476f","118ab2","ffd166","D6D6D6"]
+
+- Object
+
+{"Midnight green":"073b4c","Emerald":"06d6a0","Bright pink (Crayola)":"ef476f","Blue (NCS)":"118ab2","Sunglow":"ffd166","Timberwolf":"D6D6D6"}
+
+- Extended Array
+
+[{"name":"Midnight green","hex":"073b4c","rgb":[7,59,76],"cmyk":[91,22,0,70],"hsb":[195,91,30],"hsl":[195,83,16],"lab":[23,-9,-15]},{"name":"Emerald","hex":"06d6a0","rgb":[6,214,160],"cmyk":[97,0,25,16],"hsb":[164,97,84],"hsl":[164,95,43],"lab":[76,-56,15]},{"name":"Bright pink (Crayola)","hex":"ef476f","rgb":[239,71,111],"cmyk":[0,70,54,6],"hsb":[346,70,94],"hsl":[346,84,61],"lab":[56,66,16]},{"name":"Blue (NCS)","hex":"118ab2","rgb":[17,138,178],"cmyk":[90,22,0,30],"hsb":[195,90,70],"hsl":[195,83,38],"lab":[54,-16,-30]},{"name":"Sunglow","hex":"ffd166","rgb":[255,209,102],"cmyk":[0,18,60,0],"hsb":[42,60,100],"hsl":[42,100,70],"lab":[86,4,58]},{"name":"Timberwolf","hex":"D6D6D6","rgb":[214,214,214],"cmyk":[0,0,0,16],"hsb":[0,0,84],"hsl":[0,0,84],"lab":[86,0,0]}]
+
+- XML
+
+<palette>
+  <color name="Midnight green" hex="073b4c" r="7" g="59" b="76" />
+  <color name="Emerald" hex="06d6a0" r="6" g="214" b="160" />
+  <color name="Bright pink (Crayola)" hex="ef476f" r="239" g="71" b="111" />
+  <color name="Blue (NCS)" hex="118ab2" r="17" g="138" b="178" />
+  <color name="Sunglow" hex="ffd166" r="255" g="209" b="102" />
+  <color name="Timberwolf" hex="D6D6D6" r="214" g="214" b="214" />
+</palette>

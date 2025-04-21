@@ -1,18 +1,15 @@
 ﻿using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
-using NetSolutions.WebApi.Data.Interceptors;
 using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.WebApi.Repositories;
 using NetSolutions.WebApi.Services;
-using NetSolutions.WebApi.TestData;
+using NetSolutions.WebApi.Tasks;
 using System.Text;
 using System.Text.Json.Serialization; // Add this using directive
 
@@ -44,7 +41,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     });
     options.EnableDetailedErrors();
     options.EnableSensitiveDataLogging();
-    options.AddInterceptors(new ChangesInterceptor());
     // Disable this warning in development for data generation
     options.ConfigureWarnings(warnings =>
     {
@@ -56,6 +52,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -101,7 +98,9 @@ builder.Services.AddCors(options =>
 
 //✅ SmtpSettings as a Singleton to use it out of the box
 builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(SmtpSettings)).Get<SmtpSettings>() ?? throw new Exception("Error registering SmtpSettings"));
+
 //✅ Register EmailSender service
+builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(EmailSettings)).Get<EmailSettings>() ?? throw new Exception("Error registering EmailSettings"));
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 //✅ Register JWT service
@@ -144,23 +143,21 @@ builder.Services.AddSingleton(sp =>
     return new Cloudinary(account);
 });
 
-
-// ✅ Data access services
-builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
-builder.Services.AddScoped<IProjectsRepository, ProjectsRepository>();
-builder.Services.AddScoped<ISolutionsRepository, SolutionsRepository>();
-builder.Services.AddScoped<IBusinessServicePackagesRepository, BusinessServicePackagesRepository>();
-builder.Services.AddScoped<IBusinessServiceRepository, BusinessServiceRepository>();
-
-/*
- * Test task automation
- */
-//builder.Services.AddHostedService<TimeLogger>();
-
+// ✅Background jobs/tasks
+builder.Services.AddHostedService<ApplicationUserCleanUpTask>();
 
 // ✅ Register RazorLight as a service
 builder.Services.AddSingleton<IRazorLightEmailRenderer, RazorLightEmailRenderer>();
 
+// ✅ Data access services
+builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+builder.Services.AddScoped<IClientRepository, ClientRepositotry>();
+builder.Services.AddScoped<IProjectRepository, ProjectsRepository>();
+builder.Services.AddScoped<ISolutionRepository, SolutionRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
+// ✅ AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
@@ -180,59 +177,6 @@ if (app.Environment.IsDevelopment())
     // ✅ Swagger for development
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    // ✅ Add a special path for email template previews in development only
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(
-            Path.Combine(Directory.GetCurrentDirectory(), "TestData", "Emails", "Previews")),
-        RequestPath = "/email-previews"
-    });
-
-    // Also add a simple generator for previews
-    app.Map("/generate-preview", previewApp =>
-    {
-        previewApp.Run(async context =>
-        {
-            var template = context.Request.Query["template"].ToString();
-            if (string.IsNullOrEmpty(template))
-            {
-                context.Response.StatusCode = 400;
-                await context.Response.WriteAsync("Please specify a template name");
-                return;
-            }
-
-            var services = context.RequestServices;
-            var renderer = services.GetRequiredService<IRazorLightEmailRenderer>();
-
-            try
-            {
-                // Create sample model based on template name
-                object model = template switch
-                {
-                    "AccountRegistrationConfirmation" => EmailTemplatesData.CreateSampleConfirmationModel(),
-                    "AccountRegistrationSuccessful" => EmailTemplatesData.CreateSampleSuccessModel(),
-                    _ => throw new ArgumentException($"No sample data for template '{template}'")
-                };
-
-                var htmlContent = await renderer.RenderEmailTemplateAsync(template, model);
-
-                // Save as static file for future reference
-                var previewDir = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "Emails", "Previews");
-                Directory.CreateDirectory(previewDir);
-                var filePath = Path.Combine(previewDir, $"{template}-preview.html");
-                await System.IO.File.WriteAllTextAsync(filePath, htmlContent);
-
-                context.Response.ContentType = "text/html";
-                await context.Response.WriteAsync(htmlContent);
-            }
-            catch (Exception ex)
-            {
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsync($"Error: {ex.Message}");
-            }
-        });
-    });
 }
 
 

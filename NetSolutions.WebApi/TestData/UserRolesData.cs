@@ -22,7 +22,7 @@ public class UserRolesData
             Seed.IdentityRoles.AddRange(identityRoles);
             builder.Entity<IdentityRole>().HasData(identityRoles);
 
-            Console.WriteLine("GenerateUserRoles Complete");
+            Console.WriteLine($"UserRoles generated: {identityRoles.Count()}");
         }
         catch (Exception ex)
         {

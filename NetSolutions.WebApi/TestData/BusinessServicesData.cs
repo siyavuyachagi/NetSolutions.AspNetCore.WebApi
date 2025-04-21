@@ -55,7 +55,7 @@ public class BusinessServicesData
             Seed.BusinessServices.AddRange(ourServices);
             builder.Entity<BusinessService>().HasData(ourServices);
 
-            GenerateBusinessServiceThumbnail(builder);
+            //GenerateBusinessServiceThumbnail(builder);
             GenerateBusinessServicePackages(builder);
             GenerateBusinessServicePackageFeatures(builder);
 
@@ -69,88 +69,88 @@ public class BusinessServicesData
     }
 
 
-    public static void GenerateBusinessServiceThumbnail(ModelBuilder builder)
-    {
-        try
-        {
-            var businessService = Seed.BusinessServices.ToList();
+    //public static void GenerateBusinessServiceThumbnail(ModelBuilder builder)
+    //{
+    //    try
+    //    {
+    //        var businessService = Seed.BusinessServices.ToList();
 
-            foreach (var service in businessService)
-            {
-                switch (service.Name)
-                {
-                    case "Mobile Development":
-                        {
-                            var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("DevFiles/mobile-dev"));
-                            GenerateBusinessServiceThumbnail(builder, service, file);
-                            break;
-                        }
-                    case "UI/UX Design":
-                        {
-                            var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("DevFiles/uiux-design"));
-                            GenerateBusinessServiceThumbnail(builder, service, file);
-                            break;
-                        }
-                    case "Web Design":
-                        {
-                            var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("DevFiles/web-design"));
-                            GenerateBusinessServiceThumbnail(builder, service, file);
-                            break;
-                        }
-                    case "Web Development":
-                        {
-                            var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("DevFiles/web-dev"));
-                            GenerateBusinessServiceThumbnail(builder, service, file);
-                            break;
-                        }
-                    default:
-                        break;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error generating BusinessServiceThumbnail: {ex.Message}");
-            throw;
-        }
-    }
+    //        foreach (var service in businessService)
+    //        {
+    //            switch (service.Name)
+    //            {
+    //                case "Mobile Development":
+    //                    {
+    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/mobile-dev"));
+    //                        GenerateBusinessServiceThumbnail(builder, service, file);
+    //                        break;
+    //                    }
+    //                case "UI/UX Design":
+    //                    {
+    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/uiux-design"));
+    //                        GenerateBusinessServiceThumbnail(builder, service, file);
+    //                        break;
+    //                    }
+    //                case "Web Design":
+    //                    {
+    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/web-design"));
+    //                        GenerateBusinessServiceThumbnail(builder, service, file);
+    //                        break;
+    //                    }
+    //                case "Web Development":
+    //                    {
+    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/web-dev"));
+    //                        GenerateBusinessServiceThumbnail(builder, service, file);
+    //                        break;
+    //                    }
+    //                default:
+    //                    break;
+    //            }
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"Error generating BusinessServiceThumbnail: {ex.Message}");
+    //        throw;
+    //    }
+    //}
 
-    private static void GenerateBusinessServiceThumbnail(ModelBuilder builder, BusinessService service, FilesManager.TestFile file)
-    {
-        try
-        {
-            var fileResource = new FileMetadata
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = file.FileName,
-                ContentType = file.Type,
-                Extension = file.Extension,
-                Size = file.Size,
-                ViewLink = file.VirtualPath,
-                DownloadLink = file.PhysicalPath,
-                StorageProvider = FileMetadata.EStorageProvider.Local,
-                //CreatedAt = DateTime.Now,
-                //UpdatedAt = DateTime.Now
-            };
-            Seed.FileMetadatas.Add(fileResource);
-            builder.Entity<FileMetadata>().HasData(fileResource);
+    //private static void GenerateBusinessServiceThumbnail(ModelBuilder builder, BusinessService service, FilesManager.TestFile file)
+    //{
+    //    try
+    //    {
+    //        var fileResource = new FileMetadata
+    //        {
+    //            Id = Guid.NewGuid().ToString(),
+    //            Name = file.FileName,
+    //            ContentType = file.Type,
+    //            Extension = file.Extension,
+    //            Size = file.Size,
+    //            ViewLink = file.VirtualPath,
+    //            DownloadLink = file.PhysicalPath,
+    //            StorageProvider = FileMetadata.EStorageProvider.Local,
+    //            CreatedAt = DateTime.Now,
+    //            UpdatedAt = DateTime.Now
+    //        };
+    //        Seed.FileMetadatas.Add(fileResource);
+    //        builder.Entity<FileMetadata>().HasData(fileResource);
 
-            var ourServiceThumbnail = new BusinessService_FileMetadata_Thumbnail
-            {
-                Id = Guid.NewGuid(),
-                BusinessServiceId = service.Id,
-                FileMetadataId = fileResource.Id,
-            };
+    //        var ourServiceThumbnail = new BusinessService_FileMetadata_Thumbnail
+    //        {
+    //            Id = Guid.NewGuid(),
+    //            BusinessServiceId = service.Id,
+    //            FileMetadataId = fileResource.Id,
+    //        };
 
-            Seed.BusinessService_FileMetadata_Thumbnails.Add(ourServiceThumbnail);
-            builder.Entity<BusinessService_FileMetadata_Thumbnail>().HasData(ourServiceThumbnail);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error generating BusinessServiceThumbnail File: {ex.Message}");
-            throw;
-        }
-    }
+    //        Seed.BusinessService_FileMetadata_Thumbnails.Add(ourServiceThumbnail);
+    //        builder.Entity<BusinessService_FileMetadata_Thumbnail>().HasData(ourServiceThumbnail);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"Error generating BusinessServiceThumbnail File: {ex.Message}");
+    //        throw;
+    //    }
+    //}
 
     private static void GenerateBusinessServicePackages(ModelBuilder builder)
     {
@@ -224,7 +224,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Static Site Setup",
+                                Name = "Static Site Setup",
                                 Description = "Setup of a modern static website with a clean design.",
                                 CreatedAt = DateTime.Now,
                                 Price = 300m // Price in Rands
@@ -233,7 +233,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Five Pages Included",
+                                Name = "Five Pages Included",
                                 Description = "Includes five essential pages: Home, About, Services, Contact, and Blog.",
                                 CreatedAt = DateTime.Now,
                                 Price = 500m
@@ -242,7 +242,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Basic SEO",
+                                Name = "Basic SEO",
                                 Description = "Basic search engine optimization to improve online visibility.",
                                 CreatedAt = DateTime.Now,
                                 Price = 200m
@@ -257,7 +257,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Responsive Design",
+                                Name = "Responsive Design",
                                 Description = "A responsive website design that adapts to all devices.",
                                 CreatedAt = DateTime.Now,
                                 Price = 400m
@@ -266,7 +266,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Up to 10 Pages",
+                                Name = "Up to 10 Pages",
                                 Description = "Customizable website with up to 10 unique pages.",
                                 CreatedAt = DateTime.Now,
                                 Price = 800m
@@ -275,7 +275,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "CMS Integration",
+                                Name = "CMS Integration",
                                 Description = "Integration with a content management system for easy content updates.",
                                 CreatedAt = DateTime.Now,
                                 Price = 600m
@@ -284,7 +284,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Enhanced SEO",
+                                Name = "Enhanced SEO",
                                 Description = "Improved SEO techniques to boost search engine rankings.",
                                 CreatedAt = DateTime.Now,
                                 Price = 300m
@@ -299,7 +299,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Custom Design & Development",
+                                Name = "Custom Design & Development",
                                 Description = "Bespoke design and advanced development for a standout website.",
                                 CreatedAt = DateTime.Now,
                                 Price = 1500m
@@ -308,7 +308,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Unlimited Pages",
+                                Name = "Unlimited Pages",
                                 Description = "No limitations on page count, allowing a comprehensive online presence.",
                                 CreatedAt = DateTime.Now,
                                 Price = 1000m
@@ -317,7 +317,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "Advanced SEO & Analytics",
+                                Name = "Advanced SEO & Analytics",
                                 Description = "Advanced SEO strategies with integrated analytics for performance tracking.",
                                 CreatedAt = DateTime.Now,
                                 Price = 500m
@@ -326,7 +326,7 @@ public class BusinessServicesData
                             {
                                 Id = Guid.NewGuid(),
                                 BusinessServicePackageId = package.Id,
-                                Title = "E-commerce Integration",
+                                Name = "E-commerce Integration",
                                 Description = "Ready-to-use e-commerce functionalities for online sales and transactions.",
                                 CreatedAt = DateTime.Now,
                                 Price = 1200m

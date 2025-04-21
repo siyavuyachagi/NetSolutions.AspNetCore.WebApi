@@ -17,8 +17,10 @@ public class ApplicationUserDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string Avatar { get; set; }
-    public List<string> Roles { get; set; }
-    public Organization Organization { get; set; }
-    public List<UserActivity> UserActivities { get; set; }
-    public List<Solution> Solutions { get; set; }
+    public List<string> UserRoles { get; set; }
+    public OrganizationDto? Organization { get; set; }
+    public PhysicalAddressDto PhysicalAddress { get; set; }
+    public List<UserActivityDto> UserActivities { get; set; }
+    public virtual string Discriminator { get; set; }
+
 }

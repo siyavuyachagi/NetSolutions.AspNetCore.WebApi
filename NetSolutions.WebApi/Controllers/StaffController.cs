@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Models.DTOs;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -20,17 +22,18 @@ public class StaffController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IJasonWebToken _jasonWebToken;
     private readonly SmtpSettings _smtpSettings;
+    private readonly IMapper _mapper;
 
     public StaffController(
-        UserManager<ApplicationUser> userManager, 
-        SignInManager<ApplicationUser> signInManager, 
-        IEmailSender emailSender, 
-        ILogger<AccountController> logger, 
-        RoleManager<IdentityRole> roleManager, 
-        ApplicationDbContext context, 
-        IJasonWebToken jasonWebToken, 
-        SmtpSettings smtpSettings
-    )
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        IEmailSender emailSender,
+        ILogger<AccountController> logger,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        IJasonWebToken jasonWebToken,
+        SmtpSettings smtpSettings,
+        IMapper mapper)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -40,6 +43,7 @@ public class StaffController : ControllerBase
         _context = context;
         _jasonWebToken = jasonWebToken;
         _smtpSettings = smtpSettings;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -48,33 +52,19 @@ public class StaffController : ControllerBase
         try
         {
             var staff = await _context.Staff
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName,
-                    u.LastName,
-                    u.FirstName,
-                    u.Email,
-                    u.EmailConfirmed,
-                    u.PhoneNumber,
-                    u.PhoneNumberConfirmed,
-                    u.Gender,
-                    u.Bio,
-                    u.CreatedAt,
-                    u.UpdatedAt,
-                    u.Avatar,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id) // Match roles by user ID
-                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
-                        .ToList(), // Get role names as a list
-                    u.Organization,
-                    u.UserActivities,
-                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                    u.Profession,
-                    Skills = u.Skills.Select(s => s.UserSkill).ToList()
-                })
+                .Include(x => x.PhysicalAddress)
+                .Include(x => x.Organization)
+                .Include(x => x.UserActivities)
+                .Include(x => x.Profession)
+                .Include(x => x.Staff_UserSkills)
+                .ThenInclude(x => x.UserSkill)
                 .ToListAsync();
-            return Ok(staff);
+
+            if (staff is null) return NotFound();
+
+            var dto = _mapper.Map<List<StaffDto>>(staff);
+
+            return Ok(dto);
         }
         catch (Exception ex)
         {
@@ -89,40 +79,20 @@ public class StaffController : ControllerBase
         try
         {
             var staff = await _context.Staff
-                .Where(u => u.Id == Id)
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName,
-                    u.LastName,
-                    u.FirstName,
-                    u.Email,
-                    u.EmailConfirmed,
-                    u.PhoneNumber,
-                    u.PhoneNumberConfirmed,
-                    u.Gender,
-                    u.Bio,
-                    u.CreatedAt,
-                    u.UpdatedAt,
-                    u.Avatar,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id) // Match roles by user ID
-                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name) // Join with AspNetRoles
-                        .ToList(), // Get role names as a list
-                    u.Organization,
-                    u.UserActivities,
-                    Solutions = u.UserSolutions.Select(us => us.Solution).ToList(),
-                    u.Profession,
-                    Skills = u.Skills.Select(s => new
-                    {
-                        s.UserSkill.Id,
-                        s.UserSkill.Name,
-                        s.UserSkill.Description,
-                        Discriminator = EF.Property<string>(s.UserSkill, "Discriminator").ToFormattedString(Casing.Pascal).Replace(nameof(Solution), ""),
-                    }).ToList(),
-                })
+                .Where(x => x.Id == Id)
+                .Include(x => x.PhysicalAddress)
+                .Include(x => x.Organization)
+                .Include(x => x.UserActivities)
+                .Include(x => x.Profession)
+                .Include(x => x.Staff_UserSkills)
+                .ThenInclude(x => x.UserSkill)
                 .FirstOrDefaultAsync();
-            return Ok(staff);
+
+            if (staff is null) return NotFound();
+
+            var dto = _mapper.Map<StaffDto>(staff);
+
+            return Ok(dto);
         }
         catch (Exception ex)
         {

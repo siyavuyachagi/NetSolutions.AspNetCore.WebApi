@@ -16,6 +16,6 @@ public class Staff : ApplicationUser
     [ForeignKey(nameof(ProfessionId))]
     public virtual Profession Profession { get; set; }
 
-    public virtual List<Staff_Skill> Skills { get; set; }
-    public virtual List<TeamMember> PrjectTeams { get; set; }
+    public virtual List<Staff_UserSkill> Staff_UserSkills { get; set; }
+    public virtual List<ProjectTeamMember> ProjectTeamMembers { get; set; }
 }

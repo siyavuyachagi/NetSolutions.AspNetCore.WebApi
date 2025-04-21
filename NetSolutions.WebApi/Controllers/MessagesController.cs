@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NetSolutions.Services;
-using NetSolutions.Templates.Emails;
+//using NetSolutions.Templates.Emails;
 using NetSolutions.WebApi.Data;
 using System.ComponentModel.DataAnnotations;
 
@@ -68,22 +69,31 @@ public class MessagesController : ControllerBase
     }
 
     [HttpPost("contact-us")]
-    public async Task<IActionResult> ContactUs([FromBody]ContactUsModel model)
+    public async Task<IActionResult> ContactUs([FromBody] ContactUsModel model)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var projectCreatedEmail = new ContactUsViewModel(model.Email,model.Subject,model.Message);
-            string emailBody = await projectCreatedEmail.HtmlBodyAsync(_webHost);
-            var result = await _emailSender.SendEmailAsync(model.Email, _smtpSettings.Email, model.Subject, emailBody);
+            // Fetch NetSolutions profile for the email template
+            var netsolutions = await _context.NetSolutionsProfile
+                .AsNoTrackingWithIdentityResolution()
+                .Include(x => x.PhysicalAddress)
+                .Include(x => x.SocialLinks)
+                .FirstOrDefaultAsync();
+
+            var result = await _emailSender.SendEmailAsync(model.Email, netsolutions.Email, $"Email from {model.Email}", $"<p>{model.Message}</p>");
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Error sending email");
+            }
 
             return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            return StatusCode(500,ex.Message);
+            return StatusCode(500, ex.Message);
         }
     }
 }

@@ -18,7 +18,11 @@ public class BusinessService
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
-    public virtual BusinessService_FileMetadata_Thumbnail Thumbnail { get; set; }
-    public virtual List<BusinessServicePackage> Packages { get; set; }
+
+    public string? ThumbnailId { get; set; }
+    [ForeignKey(nameof(ThumbnailId))]
+    public virtual FileMetadata Thumbnail { get; set; }
+
+    public virtual List<BusinessServicePackage> BusinessServicePackages { get; set; }
     public virtual List<BusinessService_Testimonial> Testimonials { get; set; }
 }

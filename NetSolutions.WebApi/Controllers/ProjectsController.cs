@@ -26,8 +26,7 @@ public class ProjectsController : ControllerBase
     private readonly IJasonWebToken _jasonWebToken;
     private readonly SmtpSettings _smtpSettings;
     private readonly IRedisCache _redisCache;
-    private readonly IProjectsRepository _projectsRepository;
-    private const string PROJECTS_CACHE_KEY = "projects_list_cache";
+    private readonly IProjectRepository _projectsRepository;
     public ProjectsController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
@@ -38,7 +37,7 @@ public class ProjectsController : ControllerBase
         IJasonWebToken jasonWebToken,
         SmtpSettings smtpSettings,
         IRedisCache redisCache,
-        IProjectsRepository projectsRepository)
+        IProjectRepository projectsRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -58,9 +57,8 @@ public class ProjectsController : ControllerBase
     {
         try
         {
-            var result = await _projectsRepository.GetProjectsAsync();
-            if (!result.Succeeded) return NotFound(result.Errors);
-            return Ok(result.Response);
+            var projectsDto = await _projectsRepository.GetProjectsAsync();
+            return Ok(projectsDto);
         }
         catch (Exception ex)
         {
@@ -75,9 +73,8 @@ public class ProjectsController : ControllerBase
     {
         try
         {
-            var result = await _projectsRepository.GetProjectAsync(Id);
-            if (!result.Succeeded) return NotFound(result.Errors);
-            return Ok(result.Response);
+            var projectDto = await _projectsRepository.GetProjectAsync(Id);
+            return Ok(projectDto);
         }
         catch (Exception ex)
         {
@@ -92,8 +89,8 @@ public class ProjectsController : ControllerBase
     {
         try
         {
-            await _projectsRepository.DeleteProjectAsync(Id);
-            return NoContent();
+            //await _projectsRepository.DeleteProjectAsync(Id);
+            return Ok();
         }
         catch (Exception ex)
         {
@@ -101,4 +98,30 @@ public class ProjectsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+
+    //[HttpGet("staff/{Id}")]
+    //public async Task<IActionResult> GetProjectsByStaffId([FromRoute] string Id)
+    //{
+    //    try
+    //    {
+    //        var projects = await _projectsRepository.GetProjectsAsync();
+
+    //        if (!projects.Succeeded || projects.Response == null)
+    //            return BadRequest("Unable to retrieve projects.");
+
+    //        var userProjects = projects.Response
+    //            .Where(p => p.ProjectTeam.ProjectTeamMembers
+    //                .Any(m => m.UserId == Id)) // Adjust `UserId` if named differently
+    //            .ToList();
+
+    //        return Ok(userProjects);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, ex.Message);
+    //        return StatusCode(500, ex.Message);
+    //    }
+    //}
+
 }

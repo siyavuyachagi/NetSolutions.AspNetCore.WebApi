@@ -15,11 +15,11 @@ public class SolutionDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string Discriminator { get; set; }
-    public List<SolutionFeature> Features { get; set; }
-    public List<TechnologyStack> TechnologyStacks { get; set; }
+    public List<SolutionFeatureDto> Features { get; set; }
+    public List<TechnologyStackDto> TechnologyStacks { get; set; }
     public List<FileMetadata> Images { get; set; }
     public List<FileMetadata> Documents { get; set; }
-    public List<Review> Reviews { get; set; }
-    public List<Solution_Like> Likes { get; set; }
+    public List<ReviewDto> Reviews { get; set; }
+    public List<SolutionLikeDto> Likes { get; set; }
 }
 

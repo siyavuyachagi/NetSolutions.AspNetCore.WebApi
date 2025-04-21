@@ -1,17 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Required by RazorLight -->
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Templates\Emails\AccountRegistrationConfirmation - Copy.cshtml.cs" />
+    <Compile Remove="Templates\Emails\PasswordReset - Copy.cshtml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Templates\Emails\AccountDeletionSuccess.cshtml" />
+    <Content Remove="Templates\Emails\PasswordReset.cshtml" />
+    <Content Remove="Templates\Emails\PasswordResetSuccess.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Templates\Emails\AccountDeletionSuccess.cshtml.cs" />
+    <Content Include="Templates\Emails\PasswordResetSuccess.cshtml.cs" />
+    <Content Include="Templates\Emails\PasswordReset.cshtml.cs" />
+    <Content Include="Templates\Emails\AccountRegistrationConfirmation.cshtml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Bogus" Version="35.6.2" />
     <PackageReference Include="CloudinaryDotNet" Version="1.27.5" />
     <PackageReference Include="dotenv.net" Version="3.2.1" />
     <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3703" />
+    <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
@@ -21,12 +43,17 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
+    <PackageReference Include="MimeKit" Version="4.11.0" />
     <PackageReference Include="RazorLight" Version="2.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestData\Emails\Previews\" />
+    <None Include="Templates\Emails\AccountDeletionSuccess.cshtml" />
+    <None Include="Templates\Emails\PasswordResetSuccess.cshtml" />
+    <None Include="Templates\Emails\PasswordReset.cshtml" />
+    <None Include="Templates\Emails\AccountRegistrationConfirmation.cshtml" />
+    <None Include="Templates\Emails\AccountRegistrationSuccess.cshtml" />
   </ItemGroup>
 
 </Project>

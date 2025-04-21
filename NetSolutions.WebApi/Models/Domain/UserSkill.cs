@@ -19,5 +19,5 @@ public class UserSkill
     [MaxLength(500)]
     public string Description { get; set; }
 
-    public virtual List<Staff_Skill> Staff_Skills { get; set; }
+    public virtual List<Staff_UserSkill> Staff { get; set; }
 }

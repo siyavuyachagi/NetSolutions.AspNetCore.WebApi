@@ -1,183 +1,57 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NetSolutions.Helpers;
+﻿using AutoMapper;
+using Google.Apis.Drive.v3.Data;
+using Microsoft.EntityFrameworkCore;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.DTOs;
-using NetSolutions.WebApi.Services;
 
 namespace NetSolutions.WebApi.Repositories
 {
     public interface IApplicationUserRepository
     {
-        Task<Result<List<ApplicationUserDto>>> GetApplicationUsersAsync();
-        Task<Result<ApplicationUserDto?>> GetApplicationUserAsync(string Id);
-        Task<Result<ApplicationUserDto?>> GetApplicationUserByUserNameAsync(string UserName);
-        Task<Result> DeleteApplicationUserAsync(string Id);
-        Task<Result> EditApplicationUserAsync(ApplicationUser applicationUser);
+        Task<List<ApplicationUserDto>> GetApplicationUsersAsync();
+        Task<ApplicationUserDto> GetApplicationUserAsync(string Id);
     }
 
     public class ApplicationUserRepository : IApplicationUserRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<ApplicationUserRepository> _logger;
-        private readonly IRedisCache _redisCache;
-        private const string APPLICATION_USERS_CACHE_KEY = "application_users_list_cache";
+        private readonly IMapper _mapper;
 
         public ApplicationUserRepository(
-            ApplicationDbContext context,
-            ILogger<ApplicationUserRepository> logger,
-            IRedisCache redisCache)
+            ApplicationDbContext context, 
+            IMapper mapper)
         {
             _context = context;
-            _logger = logger;
-            _redisCache = redisCache;
+            _mapper = mapper;
         }
 
-        public async Task<Result> DeleteApplicationUserAsync(string id)
+        public async Task<ApplicationUserDto> GetApplicationUserAsync(string Id)
         {
-            await _context.Users
-                .Where(u => u.Id == id)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(u => u.IsDeleted, true));
+            var user = await _context.Users
+                .AsNoTrackingWithIdentityResolution()
+                .Where(x => x.Id == Id)
+                .Include(x => x.IdentityUserRoles)
+                .Include(x => x.IdentityRoles)
+                .Include(x => x.PhysicalAddress)
+                .Include(x => x.UserActivities)
+                .FirstOrDefaultAsync();
 
-            await RefreshCacheAsync();
-
-            return Result.Success();
+            var result = _mapper.Map<ApplicationUserDto>(user);
+            return result;
         }
 
-        public async Task<Result> EditApplicationUserAsync(ApplicationUser applicationUser)
+        public async Task<List<ApplicationUserDto>> GetApplicationUsersAsync()
         {
-            try
-            {
-                _context.Users.Update(applicationUser);
-                await _context.SaveChangesAsync();
+            var users = await _context.Users
+                .AsNoTrackingWithIdentityResolution()
+                .Include(x => x.IdentityUserRoles)
+                .Include(x => x.IdentityRoles)
+                .Include(x => x.PhysicalAddress)
+                .Include(x => x.UserActivities)
+                .FirstOrDefaultAsync();
 
-                await RefreshCacheAsync();
-
-                return Result.Success();
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public async Task<Result<ApplicationUserDto?>> GetApplicationUserAsync(string Id)
-        {
-            try
-            {
-                var cacheApplicationUsers = await _redisCache.GetAsync<List<ApplicationUserDto>>(APPLICATION_USERS_CACHE_KEY) ?? [];
-                if (cacheApplicationUsers.Count != 0)
-                {
-                    return Result.Success(cacheApplicationUsers.Where(u => u.Id == Id).FirstOrDefault());
-                }
-                else
-                {
-                    var newApplicationUsers = await RefreshCacheAsync();
-                    return Result.Success(newApplicationUsers.Where(u => u.Id == Id).FirstOrDefault());
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return (Result<ApplicationUserDto?>)Result.Failed(ex.Message);
-            }
-        }
-
-
-        public async Task<Result<List<ApplicationUserDto>>> GetApplicationUsersAsync()
-        {
-            try
-            {
-                var cacheApplicationUsers = await _redisCache.GetAsync<List<ApplicationUserDto>>(APPLICATION_USERS_CACHE_KEY) ?? [];
-                if (cacheApplicationUsers.Count != 0)
-                {
-                    return Result.Success(cacheApplicationUsers);
-                }
-                else
-                {
-                    var newApplicationUsers = await RefreshCacheAsync();
-                    return Result.Success(newApplicationUsers);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw;
-            }
-        }
-
-
-        public async Task<List<ApplicationUserDto>> RefreshCacheAsync()
-        {
-            try
-            {
-                var userRoles = await _context.UserRoles
-                    .AsNoTrackingWithIdentityResolution()
-                    .Join(_context.Roles,
-                          ur => ur.RoleId,
-                          r => r.Id,
-                          (ur, r) => new { ur.UserId, RoleName = r.Name })
-                    .GroupBy(x => x.UserId)
-                    .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.RoleName).ToList());
-
-                var applicationUsers = await _context.Users
-                    .AsNoTrackingWithIdentityResolution()
-                    .Where(x => !x.IsDeleted)
-                    .Include(u => u.Organization)
-                    .Select(u => new ApplicationUserDto
-                    {
-                        Id = u.Id,
-                        UserName = u.UserName,
-                        LastName = u.LastName,
-                        FirstName = u.FirstName,
-                        Email = u.Email,
-                        EmailConfirmed = u.EmailConfirmed,
-                        PhoneNumber = u.PhoneNumber,
-                        PhoneNumberConfirmed = u.PhoneNumberConfirmed,
-                        Gender = u.Gender,
-                        Bio = u.Bio,
-                        CreatedAt = u.CreatedAt,
-                        UpdatedAt = u.UpdatedAt,
-                        Avatar = u.Avatar,
-                        Roles = userRoles.ContainsKey(u.Id) ? userRoles[u.Id] : new List<string>(),
-                        Organization = u.Organization,
-                        UserActivities = u.UserActivities,
-                        Solutions = u.UserSolutions.Select(us => us.Solution).ToList()
-                    })
-                    .ToListAsync();
-
-                //Save cache
-                if (applicationUsers.Count != 0) await _redisCache.SetAsync(APPLICATION_USERS_CACHE_KEY, applicationUsers);
-
-                return applicationUsers;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
-        }
-
-        public async Task<Result<ApplicationUserDto?>> GetApplicationUserByUserNameAsync(string UserName)
-        {
-            try
-            {
-                var cacheApplicationUsers = await _redisCache.GetAsync<List<ApplicationUserDto>>(APPLICATION_USERS_CACHE_KEY) ?? [];
-                if (cacheApplicationUsers.Count != 0)
-                {
-                    return Result.Success(cacheApplicationUsers.Where(u => u.UserName == UserName).FirstOrDefault());
-                }
-                else
-                {
-                    var newApplicationUsers = await RefreshCacheAsync();
-                    return Result.Success(newApplicationUsers.Where(u => u.UserName == UserName).FirstOrDefault());
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return (Result<ApplicationUserDto?>)Result.Failed(ex.Message);
-            }
+            var results = _mapper.Map<List<ApplicationUserDto>>(users);
+            return results;
         }
     }
 }

@@ -32,7 +32,7 @@ public class ProjectsData
                         .RuleFor(p => p.ClientId, f => client.Id)
                         .RuleFor(p => p.Budget, f => _faker.Random.Decimal(500, 25000))
                         .RuleFor(p => p.Status, f => f.PickRandom<Project.EStatus>())
-                        .RuleFor(p => p.Team, (f, p) =>
+                        .RuleFor(p => p.ProjectTeam, (f, p) =>
                         {
                             GenerateDesignProjectTeam(builder, p, Seed.Designers);
                             return null;
@@ -61,7 +61,7 @@ public class ProjectsData
                         .RuleFor(p => p.PreviewUrl, f => f.Internet.Url())
                         .RuleFor(p => p.Budget, f => _faker.Random.Decimal(500, 25000))
                         .RuleFor(p => p.Status, f => f.PickRandom<Project.EStatus>())
-                        .RuleFor(p => p.Team, (f, p) =>
+                        .RuleFor(p => p.ProjectTeam, (f, p) =>
                         {
                             GenerateDevelopmentProjectTeam(builder, p, Seed.Developers);
                             return null;
@@ -90,7 +90,7 @@ public class ProjectsData
                         .RuleFor(p => p.Budget, f => _faker.Random.Decimal(500, 25000))
                         .RuleFor(p => p.Platform, f => f.PickRandom<MobileApplicationProject.EPlatform>())
                         .RuleFor(p => p.Status, f => f.PickRandom<Project.EStatus>())
-                        .RuleFor(p => p.Team, (f, p) =>
+                        .RuleFor(p => p.ProjectTeam, (f, p) =>
                         {
                             GenerateDevelopmentProjectTeam(builder, p, Seed.Developers);
                             return null;
@@ -118,7 +118,7 @@ public class ProjectsData
                         .RuleFor(p => p.ClientId, f => client.Id)
                         .RuleFor(p => p.Budget, f => _faker.Random.Decimal(500, 25000))
                         .RuleFor(p => p.Status, f => f.PickRandom<Project.EStatus>())
-                        .RuleFor(p => p.Team, (f, p) =>
+                        .RuleFor(p => p.ProjectTeam, (f, p) =>
                         {
                             GenerateDesignProjectTeam(builder, p, Seed.Designers);
                             return null;
@@ -146,7 +146,7 @@ public class ProjectsData
                         .RuleFor(p => p.ClientId, f => client.Id)
                         .RuleFor(p => p.Budget, f => _faker.Random.Decimal(500, 25000))
                         .RuleFor(p => p.Status, f => f.PickRandom<Project.EStatus>())
-                        .RuleFor(p => p.Team, (f, p) =>
+                        .RuleFor(p => p.ProjectTeam, (f, p) =>
                         {
                             GenerateDevelopmentProjectTeam(builder, p, Seed.Developers);
                             return null;
@@ -253,12 +253,12 @@ public class ProjectsData
             var projectRoles = GetDesignProjectTeamMemberRoles();
 
             // Project_Staff junction table
-            var projectTeamMembers = new List<TeamMember>();
-            var teamMemberRoles = new List<TeamMember_TeamMemberRole>();
+            var projectTeamMembers = new List<ProjectTeamMember>();
+            var teamMemberRoles = new List<ProjectTeamMember_TeamMemberRole>();
 
             // Assign one ScrumMaster
             var scrumMaster = randomStaffMembers.First();
-            var scrumMasterTeamMember = new TeamMember
+            var scrumMasterTeamMember = new ProjectTeamMember
             {
                 Id = Guid.NewGuid(),
                 ProjectTeamId = projectTeam.Id,
@@ -267,16 +267,16 @@ public class ProjectsData
             projectTeamMembers.Add(scrumMasterTeamMember);
 
             // Add the Scrum Master role
-            teamMemberRoles.Add(new TeamMember_TeamMemberRole
+            teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
             {
                 Id = Guid.NewGuid(),
-                TeamMemberId = scrumMasterTeamMember.Id,
+                ProjectTeamMemberId = scrumMasterTeamMember.Id,
                 TeamMemberRoleId = Seed.TeamMemberRoles.First(r => r.Name == "Scrum Master").Id
             });
 
             // Assign one ProjectManager
             var projectManager = randomStaffMembers.Skip(1).First(); // Use Skip(1) to get the second staff member
-            var projectManagerTeamMember = new TeamMember
+            var projectManagerTeamMember = new ProjectTeamMember
             {
                 Id = Guid.NewGuid(),
                 ProjectTeamId = projectTeam.Id,
@@ -285,10 +285,10 @@ public class ProjectsData
             projectTeamMembers.Add(projectManagerTeamMember);
 
             // Add the Project Manager role
-            teamMemberRoles.Add(new TeamMember_TeamMemberRole
+            teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
             {
                 Id = Guid.NewGuid(),
-                TeamMemberId = projectManagerTeamMember.Id,
+                ProjectTeamMemberId = projectManagerTeamMember.Id,
                 TeamMemberRoleId = Seed.TeamMemberRoles.First(r => r.Name == "Project Manager").Id
             });
 
@@ -300,7 +300,7 @@ public class ProjectsData
             foreach (var selectedStaff in remainingStaff)
             {
                 // Create team member record
-                var teamMember = new TeamMember
+                var teamMember = new ProjectTeamMember
                 {
                     Id = Guid.NewGuid(),
                     ProjectTeamId = projectTeam.Id,
@@ -312,10 +312,10 @@ public class ProjectsData
                 var role = _faker.PickRandom(projectRoles);
 
                 // Add the primary role
-                teamMemberRoles.Add(new TeamMember_TeamMemberRole
+                teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
                 {
                     Id = Guid.NewGuid(),
-                    TeamMemberId = teamMember.Id,
+                    ProjectTeamMemberId = teamMember.Id,
                     TeamMemberRoleId = role.Id
                 });
 
@@ -327,10 +327,10 @@ public class ProjectsData
                     if (secondRole.Id != role.Id) // Ensure different roles by comparing IDs
                     {
                         // Add the secondary role
-                        teamMemberRoles.Add(new TeamMember_TeamMemberRole
+                        teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
                         {
                             Id = Guid.NewGuid(),
-                            TeamMemberId = teamMember.Id,
+                            ProjectTeamMemberId = teamMember.Id,
                             TeamMemberRoleId = secondRole.Id,
                         });
                     }
@@ -338,12 +338,12 @@ public class ProjectsData
             }
 
             // Add to test data collections AFTER the loop
-            Seed.TeamMembers.AddRange(projectTeamMembers);
-            Seed.TeamMember_TeamMemberRoles.AddRange(teamMemberRoles);
+            Seed.ProjectTeamMembers.AddRange(projectTeamMembers);
+            Seed.ProjectTeamMember_TeamMemberRoles.AddRange(teamMemberRoles);
 
             // Configure the entities for seeding AFTER the loop
-            builder.Entity<TeamMember>().HasData(projectTeamMembers);
-            builder.Entity<TeamMember_TeamMemberRole>().HasData(teamMemberRoles);
+            builder.Entity<ProjectTeamMember>().HasData(projectTeamMembers);
+            builder.Entity<ProjectTeamMember_TeamMemberRole>().HasData(teamMemberRoles);
         }
         catch (Exception ex)
         {
@@ -374,12 +374,12 @@ public class ProjectsData
             var projectRoles = GetDevelopmentProjectTeamMemberRoles();
 
             // Project_Staff junction table
-            var projectTeamMembers = new List<TeamMember>();
-            var teamMemberRoles = new List<TeamMember_TeamMemberRole>();
+            var projectTeamMembers = new List<ProjectTeamMember>();
+            var teamMemberRoles = new List<ProjectTeamMember_TeamMemberRole>();
 
             // Assign one ScrumMaster
             var scrumMaster = randomStaffMembers.First();
-            var scrumMasterTeamMember = new TeamMember
+            var scrumMasterTeamMember = new ProjectTeamMember
             {
                 Id = Guid.NewGuid(),
                 ProjectTeamId = projectTeam.Id,
@@ -388,16 +388,16 @@ public class ProjectsData
             projectTeamMembers.Add(scrumMasterTeamMember);
 
             // Add the Scrum Master role
-            teamMemberRoles.Add(new TeamMember_TeamMemberRole
+            teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
             {
                 Id = Guid.NewGuid(),
-                TeamMemberId = scrumMasterTeamMember.Id,
+                ProjectTeamMemberId = scrumMasterTeamMember.Id,
                 TeamMemberRoleId = Seed.TeamMemberRoles.First(r => r.Name == "Scrum Master").Id
             });
 
             // Assign one ProjectManager
             var projectManager = randomStaffMembers.Skip(1).First(); // Use Skip(1) to get the second staff member
-            var projectManagerTeamMember = new TeamMember
+            var projectManagerTeamMember = new ProjectTeamMember
             {
                 Id = Guid.NewGuid(),
                 ProjectTeamId = projectTeam.Id,
@@ -406,10 +406,10 @@ public class ProjectsData
             projectTeamMembers.Add(projectManagerTeamMember);
 
             // Add the Project Manager role
-            teamMemberRoles.Add(new TeamMember_TeamMemberRole
+            teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
             {
                 Id = Guid.NewGuid(),
-                TeamMemberId = projectManagerTeamMember.Id,
+                ProjectTeamMemberId = projectManagerTeamMember.Id,
                 TeamMemberRoleId = Seed.TeamMemberRoles.First(r => r.Name == "Project Manager").Id
             });
 
@@ -421,7 +421,7 @@ public class ProjectsData
             foreach (var selectedStaff in remainingStaff)
             {
                 // Create team member record
-                var teamMember = new TeamMember
+                var teamMember = new ProjectTeamMember
                 {
                     Id = Guid.NewGuid(),
                     ProjectTeamId = projectTeam.Id,
@@ -433,10 +433,10 @@ public class ProjectsData
                 var role = _faker.PickRandom(projectRoles);
 
                 // Add the primary role
-                teamMemberRoles.Add(new TeamMember_TeamMemberRole
+                teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
                 {
                     Id = Guid.NewGuid(),
-                    TeamMemberId = teamMember.Id,
+                    ProjectTeamMemberId = teamMember.Id,
                     TeamMemberRoleId = role.Id
                 });
 
@@ -448,10 +448,10 @@ public class ProjectsData
                     if (secondRole.Id != role.Id) // Ensure different roles by comparing IDs
                     {
                         // Add the secondary role
-                        teamMemberRoles.Add(new TeamMember_TeamMemberRole
+                        teamMemberRoles.Add(new ProjectTeamMember_TeamMemberRole
                         {
                             Id = Guid.NewGuid(),
-                            TeamMemberId = teamMember.Id,
+                            ProjectTeamMemberId = teamMember.Id,
                             TeamMemberRoleId = secondRole.Id,
                         });
                     }
@@ -459,12 +459,12 @@ public class ProjectsData
             }
 
             // Add to test data collections AFTER the loop
-            Seed.TeamMembers.AddRange(projectTeamMembers);
-            Seed.TeamMember_TeamMemberRoles.AddRange(teamMemberRoles);
+            Seed.ProjectTeamMembers.AddRange(projectTeamMembers);
+            Seed.ProjectTeamMember_TeamMemberRoles.AddRange(teamMemberRoles);
 
             // Configure the entities for seeding AFTER the loop
-            builder.Entity<TeamMember>().HasData(projectTeamMembers);
-            builder.Entity<TeamMember_TeamMemberRole>().HasData(teamMemberRoles);
+            builder.Entity<ProjectTeamMember>().HasData(projectTeamMembers);
+            builder.Entity<ProjectTeamMember_TeamMemberRole>().HasData(teamMemberRoles);
         }
         catch (Exception ex)
         {
@@ -635,7 +635,7 @@ public class ProjectsData
                 {
                     case Project.EStatus.NotStarted:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                             milestones.Add(new ProjectMilestone { Id = Guid.NewGuid(), ProjectId = project.Id, UserId = teamMember.MemberId, Title = "Initial Concept Meeting", Description = _faker.Lorem.Sentence() });
@@ -643,7 +643,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Planning:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -657,7 +657,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.InProgress:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -671,7 +671,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.OnHold:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -685,7 +685,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.AwaitingApproval:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -699,7 +699,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Testing:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -713,7 +713,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Deployment:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -727,7 +727,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Maintenance:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -741,7 +741,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Completed:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -755,7 +755,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Cancelled:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -777,7 +777,7 @@ public class ProjectsData
                 {
                     case Project.EStatus.NotStarted:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.Add(new ProjectMilestone { Id = Guid.NewGuid(), ProjectId = project.Id, UserId = teamMember.MemberId, Title = "Initial Requirements Gathering", Description = _faker.Lorem.Sentence() });
@@ -785,7 +785,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Planning:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -799,7 +799,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.InProgress:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -813,7 +813,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.OnHold:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -827,7 +827,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.AwaitingApproval:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -841,7 +841,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Testing:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -855,7 +855,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Deployment:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -869,7 +869,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Maintenance:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -883,7 +883,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Completed:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -897,7 +897,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Cancelled:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -919,7 +919,7 @@ public class ProjectsData
                 {
                     case Project.EStatus.NotStarted:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.Add(new ProjectMilestone { Id = Guid.NewGuid(), ProjectId = project.Id, UserId = teamMember.MemberId, Title = "Initial App Concept", Description = _faker.Lorem.Sentence() });
@@ -927,7 +927,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Planning:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -941,7 +941,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.InProgress:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -955,7 +955,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.OnHold:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -969,7 +969,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.AwaitingApproval:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -983,7 +983,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Testing:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -997,7 +997,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Deployment:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1011,7 +1011,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Maintenance:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1025,7 +1025,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Completed:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1039,7 +1039,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Cancelled:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1061,7 +1061,7 @@ public class ProjectsData
                 {
                     case Project.EStatus.NotStarted:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.Add(new ProjectMilestone { Id = Guid.NewGuid(), ProjectId = project.Id, UserId = teamMember.MemberId, Title = "Initial Design Brief", Description = _faker.Lorem.Sentence() });
@@ -1069,7 +1069,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Planning:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1083,7 +1083,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.InProgress:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1097,7 +1097,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.OnHold:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1111,7 +1111,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.AwaitingApproval:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1125,7 +1125,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Testing:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1139,7 +1139,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Deployment:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1153,7 +1153,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Maintenance:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1167,7 +1167,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Completed:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1181,7 +1181,7 @@ public class ProjectsData
                         break;
                     case Project.EStatus.Cancelled:
                         {
-                            var teamMember = Seed.TeamMembers
+                            var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                             milestones.AddRange(new List<ProjectMilestone>
@@ -1219,7 +1219,7 @@ public class ProjectsData
                     {
                         case Project.EStatus.NotStarted:
                             {
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
 
@@ -1231,7 +1231,7 @@ public class ProjectsData
                         case Project.EStatus.Planning:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1247,7 +1247,7 @@ public class ProjectsData
                         case Project.EStatus.InProgress:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1262,7 +1262,7 @@ public class ProjectsData
                         case Project.EStatus.OnHold:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1277,7 +1277,7 @@ public class ProjectsData
                         case Project.EStatus.AwaitingApproval:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1292,7 +1292,7 @@ public class ProjectsData
                         case Project.EStatus.Testing:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1307,7 +1307,7 @@ public class ProjectsData
                         case Project.EStatus.Deployment:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1322,7 +1322,7 @@ public class ProjectsData
                         case Project.EStatus.Maintenance:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1337,7 +1337,7 @@ public class ProjectsData
                         case Project.EStatus.Completed:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1352,7 +1352,7 @@ public class ProjectsData
                         case Project.EStatus.Cancelled:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1375,7 +1375,7 @@ public class ProjectsData
                         case Project.EStatus.NotStarted:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.Add(new ProjectTask { Id = Guid.NewGuid(), ProjectId = project.Id, Priority = _faker.PickRandom<ProjectTask.EPriority>(), Status = _faker.PickRandom<ProjectTask.EStatus>(), DueAt = _faker.Date.Future(), Title = "Gather Initial Requirements", Description = _faker.Lorem.Sentence() });
@@ -1384,7 +1384,7 @@ public class ProjectsData
                         case Project.EStatus.Planning:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1399,7 +1399,7 @@ public class ProjectsData
                         case Project.EStatus.InProgress:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1414,7 +1414,7 @@ public class ProjectsData
                         case Project.EStatus.OnHold:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1429,7 +1429,7 @@ public class ProjectsData
                         case Project.EStatus.AwaitingApproval:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1444,7 +1444,7 @@ public class ProjectsData
                         case Project.EStatus.Testing:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1459,7 +1459,7 @@ public class ProjectsData
                         case Project.EStatus.Deployment:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1474,7 +1474,7 @@ public class ProjectsData
                         case Project.EStatus.Maintenance:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1489,7 +1489,7 @@ public class ProjectsData
                         case Project.EStatus.Completed:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1504,7 +1504,7 @@ public class ProjectsData
                         case Project.EStatus.Cancelled:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1527,7 +1527,7 @@ public class ProjectsData
                         case Project.EStatus.NotStarted:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.Add(new ProjectTask { Id = Guid.NewGuid(), ProjectId = project.Id, Priority = _faker.PickRandom<ProjectTask.EPriority>(), Status = _faker.PickRandom<ProjectTask.EStatus>(), DueAt = _faker.Date.Future(), Title = "Conceptualize Initial App Idea", Description = _faker.Lorem.Sentence() });
@@ -1536,7 +1536,7 @@ public class ProjectsData
                         case Project.EStatus.Planning:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1551,7 +1551,7 @@ public class ProjectsData
                         case Project.EStatus.InProgress:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1566,7 +1566,7 @@ public class ProjectsData
                         case Project.EStatus.OnHold:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1581,7 +1581,7 @@ public class ProjectsData
                         case Project.EStatus.AwaitingApproval:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1596,7 +1596,7 @@ public class ProjectsData
                         case Project.EStatus.Testing:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1611,7 +1611,7 @@ public class ProjectsData
                         case Project.EStatus.Deployment:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1626,7 +1626,7 @@ public class ProjectsData
                         case Project.EStatus.Maintenance:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1641,7 +1641,7 @@ public class ProjectsData
                         case Project.EStatus.Completed:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1656,7 +1656,7 @@ public class ProjectsData
                         case Project.EStatus.Cancelled:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1679,7 +1679,7 @@ public class ProjectsData
                         case Project.EStatus.NotStarted:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.Add(new ProjectTask { Id = Guid.NewGuid(), ProjectId = project.Id, Priority = _faker.PickRandom<ProjectTask.EPriority>(), Status = _faker.PickRandom<ProjectTask.EStatus>(), DueAt = _faker.Date.Future(), Title = "Create Initial Design Brief", Description = _faker.Lorem.Sentence() });
@@ -1688,7 +1688,7 @@ public class ProjectsData
                         case Project.EStatus.Planning:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1703,7 +1703,7 @@ public class ProjectsData
                         case Project.EStatus.InProgress:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1718,7 +1718,7 @@ public class ProjectsData
                         case Project.EStatus.OnHold:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1733,7 +1733,7 @@ public class ProjectsData
                         case Project.EStatus.AwaitingApproval:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                             .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                             .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1748,7 +1748,7 @@ public class ProjectsData
                         case Project.EStatus.Testing:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1763,7 +1763,7 @@ public class ProjectsData
                         case Project.EStatus.Deployment:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1778,7 +1778,7 @@ public class ProjectsData
                         case Project.EStatus.Maintenance:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1793,7 +1793,7 @@ public class ProjectsData
                         case Project.EStatus.Completed:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>
@@ -1808,7 +1808,7 @@ public class ProjectsData
                         case Project.EStatus.Cancelled:
                             {
 
-                                var teamMember = Seed.TeamMembers
+                                var teamMember = Seed.ProjectTeamMembers
                                 .Where(pt => pt.ProjectTeamId == projectTeam.Id)
                                 .FirstOrDefault();
                                 tasks.AddRange(new List<ProjectTask>

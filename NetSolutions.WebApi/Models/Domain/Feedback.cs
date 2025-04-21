@@ -26,4 +26,5 @@ public class Feedback
     public int Rating { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Timestamp of the review
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

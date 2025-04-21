@@ -23,7 +23,17 @@ namespace NetSolutions.WebApi.Controllers
         private readonly JwtSettings _jwtSettings;
         private readonly Cloudinary _cloudinary;
 
-        public UserRolesController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IEmailSender emailSender, ILogger<AccountController> logger, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, IJasonWebToken jasonWebToken, SmtpSettings smtpSettings, JwtSettings jwtSettings, Cloudinary cloudinary)
+        public UserRolesController(
+            UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager, 
+            IEmailSender emailSender, 
+            ILogger<AccountController> logger, 
+            RoleManager<IdentityRole> roleManager, 
+            ApplicationDbContext context, 
+            IJasonWebToken jasonWebToken, 
+            SmtpSettings smtpSettings, 
+            JwtSettings jwtSettings, 
+            Cloudinary cloudinary)
         {
             _userManager = userManager;
             _signInManager = signInManager;

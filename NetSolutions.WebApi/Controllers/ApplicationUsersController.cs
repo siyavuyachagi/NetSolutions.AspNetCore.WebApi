@@ -12,6 +12,9 @@ using System.ComponentModel.DataAnnotations;
 using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.WebApi.Models.Validations;
 using System.Net;
+using FileExtensionsAttribute = NetSolutions.WebApi.Models.Validations.FileExtensionsAttribute;
+using AutoMapper;
+using NetSolutions.WebApi.Models.DTOs;
 using NetSolutions.WebApi.Repositories;
 
 namespace NetSolutions.WebApi.Controllers;
@@ -30,6 +33,7 @@ public class ApplicationUsersController : ControllerBase
     private readonly SmtpSettings _smtpSettings;
     private readonly JwtSettings _jwtSettings;
     private readonly Cloudinary _cloudinary;
+    private readonly IMapper _mapper;
     private readonly IApplicationUserRepository _applicationUserRepository;
 
     public ApplicationUsersController(
@@ -42,8 +46,7 @@ public class ApplicationUsersController : ControllerBase
         IJasonWebToken jasonWebToken,
         SmtpSettings smtpSettings,
         JwtSettings jwtSettings,
-        Cloudinary cloudinary
-,
+        Cloudinary cloudinary,
         IApplicationUserRepository applicationUserRepository)
     {
         _userManager = userManager;
@@ -64,9 +67,8 @@ public class ApplicationUsersController : ControllerBase
     {
         try
         {
-            var result = await _applicationUserRepository.GetApplicationUsersAsync();
-            if (!result.Succeeded) return NotFound(result.Errors);
-            return Ok(result.Response);
+            var users = await _applicationUserRepository.GetApplicationUsersAsync();
+            return Ok(users);
         }
         catch (Exception ex)
         {
@@ -81,9 +83,8 @@ public class ApplicationUsersController : ControllerBase
     {
         try
         {
-            var result = await _applicationUserRepository.GetApplicationUserAsync(Id);
-            if (!result.Succeeded) return NotFound(result.Errors);
-            return Ok(result.Response);
+            var user = await _applicationUserRepository.GetApplicationUserAsync(Id);
+            return Ok(user);
         }
         catch (Exception ex)
         {
@@ -190,24 +191,24 @@ public class ApplicationUsersController : ControllerBase
     {
         public string? Bio { get; set; }
     }
-    [HttpPost("profile/bio/{UserId}")]
-    public async Task<IActionResult> Edit([FromRoute] string UserId, UpdateBioModel model)
+    [HttpPatch("update/bio/{Id}")]
+    public async Task<IActionResult> UpdateBio([FromRoute] string Id, [FromBody]UpdateBioModel model)
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            await _context.Users
-                .Where(u => u.Id == UserId)
-                .ExecuteUpdateAsync(setter => setter
-                    .SetProperty(u => u.Bio, model.Bio)
-                    .SetProperty(u => u.UpdatedAt, DateTime.UtcNow)); // optional: update timestamp
-            return Ok();
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            int affectedRows = await _context.Users
+                .Where(x => x.Id == Id)
+                .ExecuteUpdateAsync(setter => setter.SetProperty(x => x.Bio, model.Bio));
+
+            var user = await Details(Id);
+
+            return Ok(user);
         }
         catch (Exception ex)
         {
-
-            throw;
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
         }
     }
-
 }

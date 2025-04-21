@@ -89,7 +89,7 @@ public class ProfessionsData
             Seed.Professions.AddRange(professions);
             builder.Entity<Profession>().HasData(professions);
 
-            Console.WriteLine("GenerateProfessions Complete");
+            Console.WriteLine($"Staff Professions generated: {professions.Count()}");
         }
         catch (Exception ex)
         {

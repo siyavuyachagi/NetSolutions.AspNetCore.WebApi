@@ -1,88 +1,85 @@
-using System.Net;
-using System.Net.Mail;
-using Microsoft.Extensions.Options;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using NetSolutions.Helpers;
 
 namespace NetSolutions.Services;
+
 public interface IEmailSender
 {
+    Task<Result> SendEmailAsync(string to, string subject, string htmlBody);
     Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody);
     Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody, IFormFile attachment);
     Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody, List<IFormFile> attachments);
 }
 
-
-
-
 public class EmailSender : IEmailSender
 {
-    private readonly SmtpSettings _smtpSettings;
+    private readonly EmailSettings _emailSettings;
 
-    public EmailSender(
-        IOptions<SmtpSettings> smtpSettings // ✅ Inject as IOptions<T>
-    )
+    public EmailSender(EmailSettings emailSettings)
     {
-        _smtpSettings = smtpSettings.Value; // ✅ Access the actual object
+        _emailSettings = emailSettings;
     }
 
     public async Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody)
     {
-        var message = CreateEmailMessage(from, to, subject, htmlBody);
-        await SendEmailAsync(message);
-        return Result.Success();
+        var message = CreateEmailMessage(from, from, to, subject, htmlBody);
+        return await SendAsync(message);
     }
 
     public async Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody, IFormFile attachment)
     {
-        var message = CreateEmailMessage(from, to, subject, htmlBody);
-        AttachFileToEmail(message, attachment);
-        await SendEmailAsync(message);
-        return Result.Success();
+        var message = CreateEmailMessage(from, from, to, subject, htmlBody, new List<IFormFile> { attachment });
+        return await SendAsync(message);
     }
 
     public async Task<Result> SendEmailAsync(string from, string to, string subject, string htmlBody, List<IFormFile> attachments)
     {
-        var message = CreateEmailMessage(from, to, subject, htmlBody);
-        foreach (var file in attachments)
+        var message = CreateEmailMessage(from, from, to, subject, htmlBody, attachments);
+        return await SendAsync(message);
+    }
+
+    public async Task<Result> SendEmailAsync(string to, string subject, string htmlBody)
+    {
+        var message = CreateEmailMessage(_emailSettings.DisplayName, _emailSettings.Email, to, subject, htmlBody);
+        return await SendAsync(message);
+    }
+
+    private MimeMessage CreateEmailMessage(string Name, string from, string to, string subject, string htmlBody, List<IFormFile>? attachments = null)
+    {
+        var email = new MimeMessage();
+        email.From.Add(new MailboxAddress(Name, from));
+        email.To.Add(MailboxAddress.Parse(to));
+        email.Subject = subject;
+
+        var builder = new BodyBuilder { HtmlBody = htmlBody };
+
+        if (attachments != null && attachments.Any())
         {
-            AttachFileToEmail(message, file);
+            foreach (var file in attachments)
+            {
+                using var ms = new MemoryStream();
+                file.CopyTo(ms);
+                ms.Position = 0;
+                builder.Attachments.Add(file.FileName, ms.ToArray(), ContentType.Parse(file.ContentType));
+            }
         }
-        await SendEmailAsync(message);
-        return Result.Success();
+
+        email.Body = builder.ToMessageBody();
+        return email;
     }
 
-    private MailMessage CreateEmailMessage(string from, string to, string subject, string htmlBody)
+    private async Task<Result> SendAsync(MimeMessage mail)
     {
-        var emailMessage = new MailMessage();
-        emailMessage.From = new MailAddress(from);
-        emailMessage.To.Add(new MailAddress(to));
-        emailMessage.Subject = subject;
-        emailMessage.IsBodyHtml = true;
-        emailMessage.Body = htmlBody;
-
-        return emailMessage;
-    }
-
-    private void AttachFileToEmail(MailMessage emailMessage, IFormFile file)
-    {
-        using var stream = file.OpenReadStream();
-        var attachment = new Attachment(stream, file.FileName);
-        emailMessage.Attachments.Add(attachment);
-    }
-
-    private async Task<Result> SendEmailAsync(MailMessage emailMessage)
-    {
-
         try
         {
-            using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
-            {
-                Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password),
-                EnableSsl = _smtpSettings.EnableSsl // Use SSL if enabled in configuration
-            };
-            await smtpClient.SendMailAsync(emailMessage);
+            using var client = new SmtpClient();
+            await client.ConnectAsync(_emailSettings.Server, _emailSettings.Port, SecureSocketOptions.Auto);
+            await client.AuthenticateAsync(_emailSettings.Username, _emailSettings.Password);
+            await client.SendAsync(mail);
+            await client.DisconnectAsync(true);
             return Result.Success();
-
         }
         catch (Exception ex)
         {
@@ -90,6 +87,7 @@ public class EmailSender : IEmailSender
         }
     }
 }
+
 
 public class SmtpSettings
 {
@@ -100,4 +98,15 @@ public class SmtpSettings
     public string Password { get; set; }
     public bool EnableSsl { get; set; }
 }
+
+public class EmailSettings
+{
+    public string Server { get; set; } = string.Empty;
+    public int Port { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
 

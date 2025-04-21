@@ -65,13 +65,14 @@ public class Project
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; set; } = false;
     public string? TargetAudience { get; set; }
+    public virtual string? Discriminator { get; set; }
 
-    public virtual ProjectTeam Team { get; set; }
-    public virtual Project_Timeline Timeline { get; set; }
+    public virtual ProjectTeam ProjectTeam { get; set; }
+    public virtual Project_Timeline Project_Timeline { get; set; }
 
-    public virtual List<Project_FileMetadata_Document> Documents { get; set; }
+    public virtual List<Project_FileMetadata_Document> Project_FileMetadata_Documents { get; set; }
     public virtual List<Solution> Solutions { get; set; }
-    public virtual List<Project_TechnologyStack> TechnologyStacks { get; set; }
+    public virtual List<Project_TechnologyStack> Project_TechnologyStacks { get; set; }
     public virtual List<ProjectMilestone> ProjectMilestones { get; set; }
     public virtual List<ProjectTask> ProjectTasks { get; set; }
 }

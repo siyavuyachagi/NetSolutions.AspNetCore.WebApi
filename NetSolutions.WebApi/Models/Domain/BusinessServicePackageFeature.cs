@@ -14,7 +14,7 @@ public class BusinessServicePackageFeature
     [ForeignKey(nameof(BusinessServicePackageId))]
     public virtual BusinessServicePackage BusinessServicePackage { get; set; }
 
-    public string Title { get; set; }
+    public string Name { get; set; }
     public string Description { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }

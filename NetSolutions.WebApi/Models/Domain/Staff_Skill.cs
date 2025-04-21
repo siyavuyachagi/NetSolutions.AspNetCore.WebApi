@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetSolutions.WebApi.Models.Domain;
 
-public class Staff_Skill
+public class Staff_UserSkill
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }

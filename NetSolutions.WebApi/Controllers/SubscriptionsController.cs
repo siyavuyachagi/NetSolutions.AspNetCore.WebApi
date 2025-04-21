@@ -6,6 +6,7 @@ using NetSolutions.Helpers;
 using NetSolutions.Services;
 using NetSolutions.WebApi.Data;
 using NetSolutions.WebApi.Models.Domain;
+using NetSolutions.WebApi.Repositories;
 
 namespace NetSolutions.WebApi.Controllers;
 
@@ -24,6 +25,7 @@ public class SubscriptionsController : ControllerBase
     private readonly IPayFast _payFast;
     private readonly PayFastCreds _payFastCreds;
     private readonly JwtSettings _jwtSettings;
+    private readonly ISubscriptionRepository _subscriptionRepository;
 
     public SubscriptionsController(
         UserManager<ApplicationUser> userManager,
@@ -36,7 +38,8 @@ public class SubscriptionsController : ControllerBase
         SmtpSettings smtpSettings,
         IPayFast payFast,
         PayFastCreds payFastCreds,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        ISubscriptionRepository subscriptionRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -49,6 +52,7 @@ public class SubscriptionsController : ControllerBase
         _payFast = payFast;
         _payFastCreds = payFastCreds;
         _jwtSettings = jwtSettings;
+        _subscriptionRepository = subscriptionRepository;
     }
 
     [HttpGet]
@@ -56,33 +60,7 @@ public class SubscriptionsController : ControllerBase
     {
         try
         {
-            var subscriptions = await _context.Subscriptions
-                .AsNoTrackingWithIdentityResolution()
-                .Include(s => s.BusinessServicePackage.BusinessService)
-                .Include(s => s.BusinessServicePackage.PackageFeatures)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.ClientId,
-                    s.Client,
-                    s.BusinessServicePackageId,
-                    BusinessServicePackage = new
-                    {
-                        s.BusinessServicePackage.Id,
-                        s.BusinessServicePackage.Name,
-                        s.BusinessServicePackage.Description,
-                        s.BusinessServicePackage.Price,
-                        s.BusinessServicePackage.BusinessService,
-                        s.BusinessServicePackage.PackageFeatures,
-                        BillingCycle = EnumHelper.GetDisplayName(s.BusinessServicePackage.BillingCycle),
-                        s.BusinessServicePackage.CreatedAt,
-                    },
-                    s.RecurringCycle,
-                    Status = EnumHelper.GetDisplayName(s.Status),
-                    s.CreatedAt,
-                    s.UpdatedAt
-                })
-                .ToListAsync();
+            var subscriptions = await _subscriptionRepository.GetSubscriptionsAsync();
             return Ok(subscriptions);
         }
         catch (Exception ex)
@@ -97,34 +75,7 @@ public class SubscriptionsController : ControllerBase
     {
         try
         {
-            var subscription = await _context.Subscriptions
-                .Where(s => s.Id == Id)
-                .Include(s => s.BusinessServicePackage.BusinessService)
-                .Include(s => s.BusinessServicePackage.PackageFeatures)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.ClientId,
-                    s.Client,
-                    s.BusinessServicePackageId,
-                    BusinessServicePackage = new
-                    {
-                        s.BusinessServicePackage.Id,
-                        s.BusinessServicePackage.Name,
-                        s.BusinessServicePackage.Description,
-                        s.BusinessServicePackage.Price,
-                        s.BusinessServicePackage.BusinessService,
-                        s.BusinessServicePackage.PackageFeatures,
-                        BillingCycle = EnumHelper.GetDisplayName(s.BusinessServicePackage.BillingCycle),
-                        s.BusinessServicePackage.CreatedAt,
-                    },
-                    s.RecurringCycle,
-                    Status = EnumHelper.GetDisplayName(s.Status),
-                    s.CreatedAt,
-                    s.UpdatedAt
-                })
-                .FirstOrDefaultAsync();
-
+            var subscription = await _subscriptionRepository.GetSubscriptionAsync(Id);
             return Ok(subscription);
         }
         catch (Exception ex)

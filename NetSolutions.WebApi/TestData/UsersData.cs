@@ -7,6 +7,7 @@ using NetSolutions.WebApi.Models.Domain;
 using NetSolutions.Services;
 using System.ComponentModel.Design;
 using NetSolutions.WebApi.TestData;
+using NetSolutions.WebApi.Data;
 
 namespace NetSolutions.WebApi.TestData;
 
@@ -28,8 +29,6 @@ public class UsersData
             GenerateDesigners(builder);
             GenerateClients(builder);
             GenerateOtherUsers(builder);
-
-            Console.WriteLine("GenerateUsers Complete");
         }
         catch (Exception ex)
         {
@@ -64,38 +63,39 @@ public class UsersData
                 $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
             .RuleFor(s => s.ProfessionId, f => professionsMap["Software Developer"].Id)
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
-            .RuleFor(a => a.Skills, (f, a) =>
+            .RuleFor(a => a.Staff_UserSkills, (f, a) =>
             {
                 var softSkills = Seed.SoftSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.SoftSkills.Count + 1)).ToList();
                 foreach (var skill in softSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
                     );
                 }
 
                 var technicalSkillsMap = Seed.TechnicalSkills.ToDictionary(ts => ts.Name, ts => ts);
-                builder.Entity<Staff_Skill>().HasData(
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["C# Programming"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["JavaScript Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["JavaScript Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap[".NET Core Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["ASP.NET Core Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Vue.js Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["jQuery Usage"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Bootstrap Design"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["RESTful API Design"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Azure Cloud Services"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Git Version Control"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Visual Studio Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["VS Code Development"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Selenium Testing"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["xUnit Testing"].Id, YearsOfExperience = _random.Next(1, 6) },
-                    new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["TailwindCSS Styling"].Id, YearsOfExperience = _random.Next(1, 6) }
+                builder.Entity<Staff_UserSkill>().HasData(
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["C# Programming"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["JavaScript Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["JavaScript Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap[".NET Core Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["ASP.NET Core Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Vue.js Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["jQuery Usage"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Bootstrap Design"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["RESTful API Design"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Azure Cloud Services"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Git Version Control"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Visual Studio Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["VS Code Development"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["Selenium Testing"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["xUnit Testing"].Id, YearsOfExperience = _random.Next(1, 6) },
+                    new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = technicalSkillsMap["TailwindCSS Styling"].Id, YearsOfExperience = _random.Next(1, 6) }
                 );
 
                 return null;
             })
+            .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
             .Generate(1)
             .ToList();
 
@@ -141,20 +141,21 @@ public class UsersData
             .RuleFor(a => a.PhoneNumber, f => f.Phone.PhoneNumber("+27 ## ### ####"))
             .RuleFor(a => a.PasswordHash, (f, a) => new PasswordHasher<Staff>().HashPassword(a, "Staff@123"))
             .RuleFor(s => s.Avatar, (f, s) =>
-                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1,100)}.jpg")
+                $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
             .RuleFor(s => s.ProfessionId, f => f.PickRandom(Seed.Professions).Id)
-            .RuleFor(s => s.Skills, (f, s) =>
+            .RuleFor(s => s.Staff_UserSkills, (f, s) =>
             {
                 var softSkills = Seed.SoftSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.SoftSkills.Count + 1)).ToList();
                 foreach (var skill in softSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = s.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(2, 6) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = s.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(2, 6) }
                      );
                 }
                 return null;
             })
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
+            .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
             .Generate(5)
             .ToList();
 
@@ -204,26 +205,27 @@ public class UsersData
             {
                 return f.PickRandom(professionsMap["Software Developer"].Id, professionsMap["Frontend Developer"].Id);
             })
-            .RuleFor(a => a.Skills, (f, a) =>
+            .RuleFor(a => a.Staff_UserSkills, (f, a) =>
             {
                 var softSkills = Seed.SoftSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.SoftSkills.Count + 1)).ToList();
                 foreach (var skill in softSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
                     );
                 }
 
                 var technicalSkills = Seed.TechnicalSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.TechnicalSkills.Count + 1)).ToList();
                 foreach (var skill in technicalSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(4, 10) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(4, 10) }
                     );
                 }
                 return null;
             })
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
+            .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
             .Generate(5)
             .ToList();
 
@@ -276,21 +278,21 @@ public class UsersData
             {
                 return f.PickRandom(professionsMap["Graphic Designer"].Id, professionsMap["Frontend Developer"].Id);
             })
-            .RuleFor(a => a.Skills, (f, a) =>
+            .RuleFor(a => a.Staff_UserSkills, (f, a) =>
             {
                 var softSkills = Seed.SoftSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.SoftSkills.Count + 1)).ToList();
                 foreach (var skill in softSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(1, 6) }
                     );
                 }
 
                 var technicalSkills = Seed.TechnicalSkills.OrderBy(_ => Guid.NewGuid()).Take(_random.Next(1, Seed.TechnicalSkills.Count + 1)).ToList();
                 foreach (var skill in technicalSkills)
                 {
-                    builder.Entity<Staff_Skill>().HasData(
-                        new Staff_Skill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(4, 10) }
+                    builder.Entity<Staff_UserSkill>().HasData(
+                        new Staff_UserSkill { Id = Guid.NewGuid(), StaffId = a.Id, UserSkillId = skill.Id, YearsOfExperience = _random.Next(4, 10) }
                     );
                 }
                 return null;
@@ -346,9 +348,11 @@ public class UsersData
                             var organization = new Faker<Organization>("en_ZA")
                             .RuleFor(o => o.Id, f => Guid.NewGuid())
                             .RuleFor(o => o.Name, f => f.Company.CompanyName())
+                            .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
                             .Generate();
 
                             builder.Entity<Organization>().HasData(organization);
+                            Seed.Organizations.Add(organization);
                             return organization.Id;
                         }
                     default:
@@ -357,6 +361,7 @@ public class UsersData
                 return null;
             })
             .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
+            .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
             .RuleFor(c => c.CreatedAt, f => f.Date.Past())
             .Generate(5);
 
@@ -401,6 +406,7 @@ public class UsersData
                 .RuleFor(s => s.Avatar, (f, s) =>
                 $"https://randomuser.me/api/portraits/{(s.Gender == "Male" ? "men" : "women")}/{f.Random.Int(1, 100)}.jpg")
                 .RuleFor(a => a.Bio, f => f.Lorem.Paragraphs(_random.Next(1, 3)))
+                .RuleFor(g => g.PhysicalAddressId, f => GeneratePhysicalAddress(builder))
                 .Generate(5)
                 .ToList();
 
@@ -466,4 +472,31 @@ public class UsersData
             throw;
         }
     }
+
+    private static Guid GeneratePhysicalAddress(ModelBuilder builder)
+    {
+        try
+        {
+            var physicalAddress = new Faker<PhysicalAddress>()
+                .RuleFor(a => a.Id, f => Guid.NewGuid())
+                .RuleFor(a => a.Street, f => f.Address.StreetAddress())
+                .RuleFor(a => a.City, f => f.Address.City())
+                .RuleFor(a => a.Province, f => f.Address.State())
+                .RuleFor(a => a.Country, f => f.Address.Country())
+                .RuleFor(a => a.PostalCode, f => f.Address.ZipCode())
+                .RuleFor(a => a.CreatedAt, f => DateTime.UtcNow)
+                .RuleFor(a => a.UpdatedAt, f => DateTime.UtcNow)
+                .Generate();
+
+            Seed.PhysicalAddresses.Add(physicalAddress);
+            builder.Entity<PhysicalAddress>().HasData(physicalAddress);
+            return physicalAddress.Id;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating PhysicalAddress: {ex.Message}");
+            throw;
+        }
+    }
+
 }

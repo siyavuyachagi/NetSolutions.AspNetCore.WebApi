@@ -1733,7 +1733,7 @@ public class UserSkillsData
             Seed.UserSkills.AddRange(technicalSkills);
             builder.Entity<TechnicalSkill>().HasData(technicalSkills);
 
-            Console.WriteLine("GenerateUserSkills Complete");
+            Console.WriteLine($"UserSkills generated: {Seed.UserSkills.Count()}");
         }
         catch (Exception ex)
         {
