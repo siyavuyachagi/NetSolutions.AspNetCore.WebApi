@@ -83,7 +83,7 @@
 ## 🛠 Development Setup
 
 ### Prerequisites
-- .NET SDK 7.0+
+- .NET SDK 8.0+
 - SQL Server / PostgreSQL
 - Redis (for caching, optional)
 - Node.js (for frontend integration testing)

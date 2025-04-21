@@ -50,6 +50,7 @@ logs/
 
 # Ignore DevFiles directory
 wwwroot/_development_files/
+_development_files/
 
 # Azure & Deployment
 Azure/
