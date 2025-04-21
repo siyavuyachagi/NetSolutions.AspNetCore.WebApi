@@ -49,7 +49,6 @@ logs/
 *.pfx
 
 # Ignore DevFiles directory
-wwwroot/DevFiles/
 wwwroot/_development_files/
 
 # Azure & Deployment
