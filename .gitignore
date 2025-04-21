@@ -48,9 +48,12 @@ logs/
 *.cache
 *.pfx
 
+# Ignore DevFiles directory
+wwwroot/DevFiles/
+wwwroot/_development_files/
+
 # Azure & Deployment
 Azure/
-wwwroot/DevFiles/
 publish/
 *.pubxml
 *.publishsettings
