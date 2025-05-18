@@ -11,11 +11,11 @@ namespace Domain.Entities
 
         public Guid? ProjectId { get; set; }
         [ForeignKey(nameof(ProjectId))]
-        public virtual Project Project { get; set; } = new Project();
+        public virtual Project Project { get; set; }
 
         public Guid? ProjectTeamId { get; set; }
         [ForeignKey(nameof(ProjectTeamId))]
-        public virtual ProjectTeam ProjectTeam { get; set; } = new ProjectTeam();
+        public virtual ProjectTeam ProjectTeam { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -37,7 +37,6 @@ namespace Domain.Entities
         public virtual List<Solution_Review> Solution_Reviews { get; set; }
         public virtual List<Solution_TechnologyStack> Solution_TechnologyStacks { get; set; }
         public virtual List<Solution_Like> Solution_Likes { get; set; } = new();
-        public virtual List<Solution_Bookmark> Solution_Bookmarks { get; set; }
     }
 }
 

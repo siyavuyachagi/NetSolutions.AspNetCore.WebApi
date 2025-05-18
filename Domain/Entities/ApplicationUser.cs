@@ -27,7 +27,6 @@ public class ApplicationUser: IdentityUser
     public virtual List<UserActivity> UserActivities { get; set; } = new();
     public virtual List<User_Solution> User_Solutions { get; set; } = new();
     public virtual List<Solution_Like> LikedSolutions { get; set; } = new();
-    public virtual List<Solution_Bookmark> BookmarkedSolutions { get; set; } = new();
     public virtual List<SocialLink> SocialLinks { get; set; } = new();
 
     // Add this navigation property

@@ -5,6 +5,7 @@ using Infrastructure.Configurations;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
+using Infrastructure.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
-using Serilog.Extensions.Hosting;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -72,11 +72,6 @@ builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 
 //✅ Configure Serilog
-// Serilog directories
-Directory.CreateDirectory("Logs/Info");
-Directory.CreateDirectory("Logs/Warnings");
-Directory.CreateDirectory("Logs/Errors");
-Directory.CreateDirectory("Logs/Debug");
 builder.Host.UseSerilog();
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -97,9 +92,6 @@ Log.Logger = new LoggerConfiguration()
         .Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Error)
         .WriteTo.File($"Logs/Errors/Errors.log"))
     .CreateLogger();
-
-builder.Host.UseSerilog();
-
 
 //✅Add Authentication services
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? throw new NullReferenceException("JwtSettings cannot be null");
@@ -137,6 +129,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IAdministrator, AdministratorRepository>();
 builder.Services.AddScoped<IApplicationUser, ApplicationUserRepository>();
+builder.Services.AddScoped<IBusinessProfile, BusinessProfileRepository>();
 builder.Services.AddScoped<IBusinessService, BusinessServiceRepository>();
 builder.Services.AddScoped<IBusinessServicePackage, BusinessServicePackageRepository>();
 builder.Services.AddScoped<IClient, ClientRepositotry>();
@@ -146,11 +139,13 @@ builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(EmailSetti
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.AddScoped<IFeedback, FeedbackRepository>();
+builder.Services.AddScoped<IGuestUser, GuestUserRepository>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));//Register JWT settings using the Options Pattern
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);//Register JwtSettings as a singleton for direct access if needed
 builder.Services.AddScoped<IJasonWebToken, JasonWebToken>();
 
+builder.Services.AddScoped<ILogClearner, LogCleaner>();
 builder.Services.AddScoped<IMessages, MessageRepository>();
 builder.Services.AddScoped<IOrganization, OrganizationRepository>();
 
@@ -176,6 +171,10 @@ builder.Services.AddSingleton(sp =>
     return new Cloudinary(account);
 });
 
+builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(GithubConfig)).Get<GithubConfig>() ?? throw new Exception("Error registering GithubConfig"));
+
+builder.Services.AddHostedService<LogCleanerWorker>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -195,5 +194,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseCors("AllowNetSolutionOrigins");
+
+app.UseStaticFiles();
 
 app.Run();

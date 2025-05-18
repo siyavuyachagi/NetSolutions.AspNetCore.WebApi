@@ -1,5 +1,6 @@
 ﻿using Application.Helpers;
 using Microsoft.AspNetCore.StaticFiles;
+using System.Text.Json;
 
 namespace Infrastructure.TestData
 {
@@ -17,7 +18,7 @@ namespace Infrastructure.TestData
             public static string GetMimeType(string filePath)
             {
                 var provider = new FileExtensionContentTypeProvider();
-                var fileName = System.IO.Path.GetFileName(filePath);
+                var fileName = Path.GetFileName(filePath);
                 return provider.TryGetContentType(fileName, out var contentType) ? contentType : "application/octet-stream";
             }
         }
@@ -107,7 +108,7 @@ namespace Infrastructure.TestData
                     // Create virtual path by replacing physical root with virtual root
                     // and normalizing the slashes to forward slashes
                     string virtualPath = "/" + relativePath + "/" + fileInfo.Name;
-                    virtualPath = $"https://localhost:7047{virtualPath.Replace("\\", "/").Replace("//", "/")}";
+                    virtualPath = $"{GetApplicationUrl()}{virtualPath.Replace("\\", "/").Replace("//", "/")}";
 
                     var testFile = new TestFile
                     {
@@ -131,6 +132,41 @@ namespace Infrastructure.TestData
             }
         }
 
+
+        /// <summary>
+        /// Retrieves the first application URL from the specified profile
+        /// in the `launchSettings.json` file located under the Properties folder.
+        /// </summary>
+        /// <param name="profileName">
+        /// The name of the profile to extract the URL from. Defaults to "https".
+        /// </param>
+        /// <returns>
+        /// The first application URL defined for the given profile, or <c>null</c>
+        /// if the file, profile, or URL is not found.
+        /// </returns>
+        private static string? GetApplicationUrl(string profileName = "https")
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "launchSettings.json");
+
+            if (!File.Exists(path))
+                return null;
+
+            var json = File.ReadAllText(path);
+            var doc = JsonDocument.Parse(json);
+
+            if (!doc.RootElement.TryGetProperty("profiles", out var profiles))
+                return null;
+
+            if (!profiles.TryGetProperty(profileName, out var profile))
+                return null;
+
+            if (!profile.TryGetProperty("applicationUrl", out var urlProperty))
+                return null;
+
+            var urls = urlProperty.GetString();
+            var firstUrl = urls?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            return firstUrl;
+        }
     }
 }
 

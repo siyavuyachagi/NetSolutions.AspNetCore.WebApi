@@ -55,7 +55,7 @@ public class BusinessServicesData
             Seed.BusinessServices.AddRange(ourServices);
             builder.Entity<BusinessService>().HasData(ourServices);
 
-            //GenerateBusinessServiceThumbnail(builder);
+            GenerateBusinessServiceImages(builder);
             GenerateBusinessServicePackages(builder);
             GenerateBusinessServicePackageFeatures(builder);
 
@@ -69,88 +69,92 @@ public class BusinessServicesData
     }
 
 
-    //public static void GenerateBusinessServiceThumbnail(ModelBuilder builder)
-    //{
-    //    try
-    //    {
-    //        var businessService = Seed.BusinessServices.ToList();
+    public static void GenerateBusinessServiceImages(ModelBuilder builder)
+    {
+        try
+        {
+            var businessService = Seed.BusinessServices.ToList();
 
-    //        foreach (var service in businessService)
-    //        {
-    //            switch (service.Name)
-    //            {
-    //                case "Mobile Development":
-    //                    {
-    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/mobile-dev"));
-    //                        GenerateBusinessServiceThumbnail(builder, service, file);
-    //                        break;
-    //                    }
-    //                case "UI/UX Design":
-    //                    {
-    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/uiux-design"));
-    //                        GenerateBusinessServiceThumbnail(builder, service, file);
-    //                        break;
-    //                    }
-    //                case "Web Design":
-    //                    {
-    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/web-design"));
-    //                        GenerateBusinessServiceThumbnail(builder, service, file);
-    //                        break;
-    //                    }
-    //                case "Web Development":
-    //                    {
-    //                        var file = new Faker("en_ZA").PickRandom(FilesManager.GetDirFiles("_development_files/web-dev"));
-    //                        GenerateBusinessServiceThumbnail(builder, service, file);
-    //                        break;
-    //                    }
-    //                default:
-    //                    break;
-    //            }
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.WriteLine($"Error generating BusinessServiceThumbnail: {ex.Message}");
-    //        throw;
-    //    }
-    //}
+            foreach (var service in businessService)
+            {
+                switch (service.Name)
+                {
+                    case "Mobile Development":
+                        {
+                            var file = FilesManager.GetDirFiles("_development_files/mobile-dev");
+                            SaveBusinessServiceFiles(builder, service, file);
+                            break;
+                        }
+                    case "UI/UX Design":
+                        {
+                            var file = FilesManager.GetDirFiles("_development_files/uiux-design");
+                            SaveBusinessServiceFiles(builder, service, file);
+                            break;
+                        }
+                    case "Web Design":
+                        {
+                            var file = FilesManager.GetDirFiles("_development_files/web-design");
+                            SaveBusinessServiceFiles(builder, service, file);
+                            break;
+                        }
+                    case "Web Development":
+                        {
+                            var file = FilesManager.GetDirFiles("_development_files/web-dev");
+                            SaveBusinessServiceFiles(builder, service, file);
+                            break;
+                        }
+                    default:
+                        break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating BusinessServiceThumbnail: {ex.Message}");
+            throw;
+        }
+    }
 
-    //private static void GenerateBusinessServiceThumbnail(ModelBuilder builder, BusinessService service, FilesManager.TestFile file)
-    //{
-    //    try
-    //    {
-    //        var fileResource = new FileMetadata
-    //        {
-    //            Id = Guid.NewGuid().ToString(),
-    //            Name = file.FileName,
-    //            ContentType = file.Type,
-    //            Extension = file.Extension,
-    //            Size = file.Size,
-    //            ViewLink = file.VirtualPath,
-    //            DownloadLink = file.PhysicalPath,
-    //            StorageProvider = FileMetadata.EStorageProvider.Local,
-    //            CreatedAt = DateTime.Now,
-    //            UpdatedAt = DateTime.Now
-    //        };
-    //        Seed.FileMetadatas.Add(fileResource);
-    //        builder.Entity<FileMetadata>().HasData(fileResource);
+    private static void SaveBusinessServiceFiles(ModelBuilder builder, BusinessService service, List<FilesManager.TestFile> files)
+    {
+        try
+        {
+            foreach (var file in files)
+            {
+                var fileResource = new FileMetadata
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = file.FileName,
+                    ContentType = file.Type,
+                    Extension = file.Extension,
+                    Size = file.Size,
+                    ViewLink = file.VirtualPath,
+                    DownloadLink = file.PhysicalPath,
+                    StorageProvider = FileMetadata.EStorageProvider.Local,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                Seed.FileMetadatas.Add(fileResource);
+                builder.Entity<FileMetadata>().HasData(fileResource);
 
-    //        var ourServiceThumbnail = new BusinessService_FileMetadata_Thumbnail
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            BusinessServiceId = service.Id,
-    //            FileMetadataId = fileResource.Id,
-    //        };
+                var businessService_FileMetadata = new BusinessService_FileMetadata_Images
+                {
+                    Id = Guid.NewGuid(),
+                    BusinessServiceId = service.Id,
+                    FileMetadataId = fileResource.Id,
+                };
 
-    //        Seed.BusinessService_FileMetadata_Thumbnails.Add(ourServiceThumbnail);
-    //        builder.Entity<BusinessService_FileMetadata_Thumbnail>().HasData(ourServiceThumbnail);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.WriteLine($"Error generating BusinessServiceThumbnail File: {ex.Message}");
-    //        throw;
-    //    }
-    //}
+                Seed.BusinessService_FileMetadata_Images.Add(businessService_FileMetadata);
+                builder.Entity<BusinessService_FileMetadata_Images>().HasData(businessService_FileMetadata);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating BusinessServiceThumbnail File: {ex.Message}");
+            throw;
+        }
+    }
 
     private static void GenerateBusinessServicePackages(ModelBuilder builder)
     {

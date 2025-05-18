@@ -4,20 +4,24 @@ using Application.Interfaces;
 using AutoMapper;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services
 {
-    public class BusinessProfile : IBusinessProfileRepository
+    public class BusinessProfileRepository : IBusinessProfile
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<BusinessProfileRepository> _logger;
 
-        public BusinessProfile(
-            ApplicationDbContext context, 
-            IMapper mapper)
+        public BusinessProfileRepository(
+            ApplicationDbContext context,
+            IMapper mapper,
+            ILogger<BusinessProfileRepository> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<BusinessProfileDto> GetBusinessProfileAsync()
@@ -35,7 +39,7 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }

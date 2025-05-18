@@ -1,5 +1,4 @@
 ﻿using Application.DTOs.Response;
-using Domain.Entities;
 
 namespace Application.Templates.Emails
 {

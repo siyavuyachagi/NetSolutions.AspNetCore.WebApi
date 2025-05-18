@@ -9,6 +9,7 @@
         public string BillingCycle { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public Guid BusinessServiceId { get; set; }
         public virtual BusinessServiceDto BusinessService { get; set; }
         public virtual List<BusinessServicePackageFeatureDto> BusinessServicePackageFeatures { get; set; }
         public virtual List<SubscriptionDto> Subscriptions { get; set; }

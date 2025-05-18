@@ -19,6 +19,7 @@ namespace Domain.Entities
         public virtual FileMetadata Thumbnail { get; set; }
 
         public virtual List<BusinessServicePackage> BusinessServicePackages { get; set; }
+        public virtual List<BusinessService_FileMetadata_Images> BusinessService_FileMetadata_Images { get; set; }
         public virtual List<BusinessService_Testimonial> BusinessService_Testimonials { get; set; }
     }
 

@@ -41,12 +41,12 @@ public class ApplicationUsersController : ControllerBase
         }
     }
 
-    [HttpGet("{Id}")]
-    public async Task<IActionResult> Details([FromRoute] string Id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Details([FromRoute] string id)
     {
         try
         {
-            var user = await _applicationUserRepository.GetApplicationUserAsync(Id);
+            var user = await _applicationUserRepository.GetApplicationUserAsync(id);
             return Ok(user);
         }
         catch (Exception ex)

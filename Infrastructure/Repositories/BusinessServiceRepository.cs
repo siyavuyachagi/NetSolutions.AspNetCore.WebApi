@@ -46,10 +46,13 @@ namespace Infrastructure.Repositories
                 var businessService = await _context.BusinessServices
                     .AsNoTrackingWithIdentityResolution()
                     .Where(x => x.Id == Id)
-                    .Include(x => x.Thumbnail)
+                    .Include(x => x.BusinessService_FileMetadata_Images)
+                    .ThenInclude(x => x.FileMetadata)
                     .Include(x => x.BusinessService_Testimonials)
                     .ThenInclude(x => x.Testimonial)
+                    .ThenInclude(x => x.Evaluator)
                     .Include(x => x.BusinessServicePackages)
+                    .ThenInclude(x => x.BusinessServicePackageFeatures)
                     .FirstOrDefaultAsync();
 
                 var response = _mapper.Map<BusinessServiceDto>(businessService);
@@ -68,7 +71,8 @@ namespace Infrastructure.Repositories
             {
                 var businessServices = await _context.BusinessServices
                     .AsNoTrackingWithIdentityResolution()
-                    .Include(x => x.Thumbnail)
+                    .Include(x => x.BusinessService_FileMetadata_Images)
+                    .ThenInclude(x => x.FileMetadata)
                     .Include(x => x.BusinessService_Testimonials)
                     .ThenInclude(x => x.Testimonial)
                     .Include(x => x.BusinessServicePackages)

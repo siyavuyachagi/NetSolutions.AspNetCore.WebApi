@@ -2,7 +2,7 @@
 
 namespace Application.Interfaces
 {
-    public interface IBusinessProfileRepository
+    public interface IBusinessProfile
     {
         Task<BusinessProfileDto> GetBusinessProfileAsync();
     }

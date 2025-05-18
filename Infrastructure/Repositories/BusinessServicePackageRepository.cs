@@ -51,17 +51,17 @@ namespace Infrastructure.Repositories
             try
             {
                 var businessServicePackage = await _context.BusinessServicePackages
-                    .AsNoTracking()
+                    .AsNoTrackingWithIdentityResolution()
                     .Where(bsp => bsp.Id == id)
                     .Include(bsp => bsp.BusinessService)
                     .Include(bsp => bsp.BusinessServicePackageFeatures)
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();
                 var result = _mapper.Map<BusinessServicePackageDto>(businessServicePackage);
                 return result;
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }
@@ -71,6 +71,7 @@ namespace Infrastructure.Repositories
             try
             {
                 var businessServicePackages = await _context.BusinessServicePackages
+                    .AsNoTrackingWithIdentityResolution()
                     .Include(bsp => bsp.BusinessService)
                     .Include(bsp => bsp.BusinessServicePackageFeatures)
                     .ToListAsync();
@@ -79,7 +80,7 @@ namespace Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }

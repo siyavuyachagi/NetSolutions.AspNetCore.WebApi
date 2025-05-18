@@ -8,11 +8,11 @@ namespace API.Controllers
     [ApiController]
     public class BusinessProfileController : ControllerBase
     {
-        private readonly IBusinessProfileRepository _businessProfileRepository;
+        private readonly IBusinessProfile _businessProfileRepository;
         private readonly ILogger<BusinessProfileController> _logger;
 
         public BusinessProfileController(
-            IBusinessProfileRepository businessProfileRepository,
+            IBusinessProfile businessProfileRepository,
             ILogger<BusinessProfileController> logger)
         {
             _businessProfileRepository = businessProfileRepository;

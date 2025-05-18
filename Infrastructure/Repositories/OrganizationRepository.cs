@@ -78,9 +78,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
+                var normalizedName = name.Trim(); // Remove leading/trailing spaces
+
                 var organization = await _context.Organizations
                     .AsNoTrackingWithIdentityResolution()
-                    .Where(o => o.Name == name)
+                    .Where(o => o.Name == normalizedName)
                     .Include(o => o.PhysicalAddress)
                     .Include(o => o.SocialLinks)
                     .FirstOrDefaultAsync();
@@ -94,6 +96,7 @@ namespace Infrastructure.Repositories
                 throw;
             }
         }
+
 
         public async Task<List<OrganizationDto>> GetOrganizationsAsync()
         {

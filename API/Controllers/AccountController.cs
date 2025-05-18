@@ -31,7 +31,7 @@ namespace API.Controllers
         private readonly IMapper _mapper;
         private readonly IApplicationUser _applicationUserRepository;
         private readonly ISolution _solutionRepository;
-        private readonly IBusinessProfileRepository _businessProfile;
+        private readonly IBusinessProfile _businessProfile;
         private readonly ApplicationDbContext _context;
 
         public AccountController(
@@ -45,7 +45,7 @@ namespace API.Controllers
             JwtSettings jwtSettings,
             IMapper mapper,
             IApplicationUser applicationUserRepository,
-            IBusinessProfileRepository businessProfile,
+            IBusinessProfile businessProfile,
             ApplicationDbContext context)
         {
             _userManager = userManager;

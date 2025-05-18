@@ -27,7 +27,7 @@ namespace Infrastructure.TestData
                                     .RuleFor(s => s.Name, f => graphicDesign.Name)
                                     .RuleFor(s => s.Price, f => f.Random.Decimal(500, 25000))
                                     .RuleFor(s => s.Description, f => graphicDesign.Description)
-                                    .RuleFor(s => s.SourceUrl, f => f.Internet.Url())
+                                    .RuleFor(s => s.SourceUrl, f => "https://github.com/siyavuyachagi/NetSolutions.Nuxt.Dashboard")
                                     .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                                     .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
                                     .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
@@ -73,7 +73,7 @@ namespace Infrastructure.TestData
                                 .RuleFor(s => s.Name, f => mobileDev.Name)
                                 .RuleFor(s => s.Price, f => f.Random.Decimal(500, 25000))
                                 .RuleFor(s => s.Description, f => mobileDev.Description)
-                                .RuleFor(s => s.SourceUrl, f => $"https://github.com/{f.Internet.UserName()}/{f.Hacker.Noun()}-app")
+                                .RuleFor(s => s.SourceUrl, f => $"https://github.com/siyavuyachagi/Node.js")
                                 .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                                 .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
                                 .RuleFor(s => s.ProjectTeamId, (f, s) => Seed.ProjectTeams.Where(pt => pt.ProjectId == project.Id).FirstOrDefault().Id)
@@ -166,7 +166,7 @@ namespace Infrastructure.TestData
                                 .RuleFor(s => s.Name, f => webApp.Name)
                                 .RuleFor(s => s.Price, f => f.Random.Decimal(500, 25000))
                                 .RuleFor(s => s.Description, f => webApp.Description)
-                                .RuleFor(s => s.SourceUrl, f => $"https://github.com/{_faker.Internet.UserName()}/{_faker.Hacker.Noun()}-web")
+                                .RuleFor(s => s.SourceUrl, f => $"https://github.com/siyavuyachagi/Node.js")
                                 .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                                 .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
                                 .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>
@@ -212,7 +212,7 @@ namespace Infrastructure.TestData
                                 .RuleFor(s => s.Name, f => uiuxDesign.Name)
                                 .RuleFor(s => s.Price, f => f.Random.Decimal(500, 25000))
                                 .RuleFor(s => s.Description, f => uiuxDesign.Description)
-                                .RuleFor(s => s.SourceUrl, f => $"https://figma.com/@{_faker.Internet.UserName()}/{_faker.Hacker.Noun()}")
+                                .RuleFor(s => s.SourceUrl, f => $"https://www.figma.com/design/MJ6Mp2CRxl6fBo0AZRqlqw/MyAccountApplication?node-id=0-1&t=anDQ9jHZEPfdv3OD-1")
                                 .RuleFor(s => s.PreviewUrl, f => f.Image.PicsumUrl())
                                 .RuleFor(s => s.CreatedAt, f => f.Date.Recent(10))
                                 .RuleFor(s => s.Solution_FileMetadata_Documents, (f, s) =>

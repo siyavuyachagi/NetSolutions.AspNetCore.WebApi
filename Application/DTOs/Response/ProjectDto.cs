@@ -9,6 +9,7 @@ public class ProjectDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string Status { get; set; }
+    public Guid BusinessServiceId { get; set; }
     public BusinessServiceDto? BusinessService { get; set; }
     public ClientDto Client { get; set; }
     public ProjectTeamDto ProjectTeam { get; set; }

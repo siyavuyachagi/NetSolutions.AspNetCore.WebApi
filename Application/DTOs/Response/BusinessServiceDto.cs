@@ -9,8 +9,9 @@ namespace Application.DTOs.Response
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
-        public List<TestimonialDto> Testimonials { get; set; }
         public string Thumbnail { get; set; }
+        public List<TestimonialDto> Testimonials { get; set; }
+        public List<FileMetadataDto> Images { get; set; }
         public List<BusinessServicePackageDto> BusinessServicePackages { get; set; }
     }
 }

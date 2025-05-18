@@ -14,9 +14,11 @@ namespace Infrastructure.Configurations
                 .ForMember(dest => dest.UserActivities, opt => opt.MapFrom(src => src.UserActivities))
                 .ForMember(d => d.Discriminator, o => o.MapFrom(s => s.Discriminator.ToFormattedString(Casing.Pascal)));
 
+            CreateMap<BusinessProfile, BusinessProfileDto>();
+
             CreateMap<BusinessService, BusinessServiceDto>()
                 .ForMember(d => d.Testimonials, o => o.MapFrom(s => s.BusinessService_Testimonials.Select(x => x.Testimonial)))
-                .ForMember(d => d.Thumbnail, o => o.MapFrom(s => s.Thumbnail.ViewLink));
+                .ForMember(d => d.Images, o => o.MapFrom(s => s.BusinessService_FileMetadata_Images.Select(x => x.FileMetadata)));
 
             CreateMap<BusinessServicePackage, BusinessServicePackageDto>();
 
@@ -31,6 +33,9 @@ namespace Infrastructure.Configurations
             CreateMap<HardSkill, HardSkillDto>();
 
             CreateMap<Organization, OrganizationDto>();
+
+            CreateMap<PaymentTransaction, PaymentTransactionDto>()
+                .ForMember(d => d.Status, o => o.MapFrom(s => EnumHelper.GetDisplayName(s.Status)));
 
             CreateMap<PhysicalAddress, PhysicalAddressDto>();
 
@@ -60,8 +65,9 @@ namespace Infrastructure.Configurations
                 .ForMember(d => d.Images, o => o.MapFrom(s => s.Solution_FileMetadata_Images.Select(x => x.FileMetadata)))
                 .ForMember(d => d.Documents, o => o.MapFrom(s => s.Solution_FileMetadata_Documents.Select(x => x.FileMetadata)))
                 .ForMember(d => d.TechnologyStacks, o => o.MapFrom(s => s.Solution_TechnologyStacks.Select(x => x.TechnologyStack)))
+                .ForMember(d => d.Features, o => o.MapFrom(s => s.SolutionFeatures.Select(x => x)))
                 .ForMember(d => d.Reviews, o => o.MapFrom(s => s.Solution_Reviews.Select(x => x.Review)))
-                .ForMember(d => d.Likes, o => o.MapFrom(s => s.Solution_Likes.Select(x => x.Liker)))
+                .ForMember(d => d.Likes, o => o.MapFrom(s => s.Solution_Likes.Select(x => x)))
                 .ForMember(d => d.Discriminator, o => o.MapFrom(s => s.Discriminator.Replace(nameof(Solution), string.Empty).ToFormattedString(Casing.Pascal)));
 
             CreateMap<SolutionFeature, SolutionFeatureDto>();

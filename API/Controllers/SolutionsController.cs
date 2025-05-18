@@ -1,18 +1,19 @@
 ﻿using Application.DTOs.Request;
+using Application.Helpers;
 using Application.Interfaces;
+using Application.Templates.Emails;
+using CloudinaryDotNet;
 using Domain.Entities;
 using Infrastructure.Configurations;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using System.Text;
+using System.IO.Compression;
+using System.Web;
+using static Domain.Entities.FileMetadata;
 
 namespace API.Controllers;
 
@@ -31,6 +32,11 @@ public class SolutionsController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly JwtSettings _jwtSettings;
+    private readonly IRazorLightEmailRenderer _razorLightEmailRenderer;
+    private readonly IEmailSender _emailSender;
+    private readonly IBusinessProfile _businessProfile;
+    private readonly GithubConfig _githubConfig;
+
 
     public SolutionsController(
         ILogger<SolutionsController> logger,
@@ -43,7 +49,11 @@ public class SolutionsController : ControllerBase
         IPaymentTransaction paymentTransaction,
         ApplicationDbContext context,
         IWebHostEnvironment webHostEnvironment,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        IRazorLightEmailRenderer razorLightEmailRenderer,
+        IEmailSender emailSender,
+        IBusinessProfile businessProfile,
+        GithubConfig githubConfig)
     {
         _logger = logger;
         _solutionRepository = solutionRepository;
@@ -56,6 +66,10 @@ public class SolutionsController : ControllerBase
         _context = context;
         _webHostEnvironment = webHostEnvironment;
         _jwtSettings = jwtSettings;
+        _razorLightEmailRenderer = razorLightEmailRenderer;
+        _emailSender = emailSender;
+        _businessProfile = businessProfile;
+        _githubConfig = githubConfig;
     }
 
 
@@ -90,8 +104,22 @@ public class SolutionsController : ControllerBase
         }
     }
 
-    [HttpPost("{Id}/purchase")]
-    public async Task<IActionResult> Purchase([FromRoute] Guid Id, PurchaseSolutionRequest model)
+    public class PurchaseSolutionRequest
+    {
+        [Required]
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        [Required, EmailAddress]
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string? OrganizationName { get; set; }
+    }
+    [HttpPost("{id}/purchase")]
+    public async Task<IActionResult> Purchase(
+        [FromRoute] Guid id, 
+        [FromBody] PurchaseSolutionRequest model, 
+        [FromQuery] string successRedirectUrl, 
+        [FromQuery] string cancelRedirectUrl)
     {
         try
         {
@@ -135,14 +163,19 @@ public class SolutionsController : ControllerBase
 
             }
 
-            var solution = await _solutionRepository.GetSolutionAsync(Id);
+            var solution = await _solutionRepository.GetSolutionAsync(id);
 
             if (solution is null)
-                return NotFound($"Solution not found: {Id}");
+                return NotFound($"Solution not found: {id}");
 
             string apiBaseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
             // Generate unique payment ID for your records
             string paymentId = Guid.NewGuid().ToString();
+            // Format return url
+
+            string rawSuccessUrl = $"{successRedirectUrl}?uid={user.Id}&pid={paymentId}&sid={solution.Id}";
+            string rawCancelUrl = $"{cancelRedirectUrl}?uid={user.Id}&pid={paymentId}&sid={solution.Id}";
+
             var paymentRequest = new PayFastRequest
             {
                 // Payment ID
@@ -154,8 +187,8 @@ public class SolutionsController : ControllerBase
                 ItemDescription = $"Purchase of solution: {solution.Name}",
 
                 // Your site's return URLs
-                ReturnUrl = $"{apiBaseUrl}/api/Solutions/purchase/return?paymentId={paymentId}",
-                CancelUrl = $"{apiBaseUrl}/api/Solutions/purchase/cancel?paymentId={paymentId}",
+                ReturnUrl = $"{apiBaseUrl}/api/Solutions/purchase/return?redirectUrl={HttpUtility.UrlEncode(rawSuccessUrl)}",
+                CancelUrl = $"{apiBaseUrl}/api/Solutions/purchase/cancel?redirectUrl={HttpUtility.UrlEncode(rawCancelUrl)}",
                 NotifyUrl = $"{apiBaseUrl}/api/Solutions/purchase/notify",
 
                 // Buyer details
@@ -179,6 +212,7 @@ public class SolutionsController : ControllerBase
             {
                 Id = Guid.Parse(paymentRequest.PaymentId),
                 Amount = Decimal.Parse(paymentRequest.Amount),
+                PaymentMethod = "cc",
                 TransactionReference = solution.Id.ToString(),
                 Status = PaymentTransaction.EStatus.Pending,
                 CreatedAt = DateTime.UtcNow
@@ -206,12 +240,31 @@ public class SolutionsController : ControllerBase
     }
 
 
+    public class PurchaseReturnQuery
+    {
+        [Required]
+        public string RedirectUrl { get; set; }
+    }
     [HttpGet("purchase/return")]
-    public async Task<IActionResult> PurchaseReturn([FromQuery] string paymentId)
+    public async Task<IActionResult> PurchaseReturn([FromQuery] PurchaseReturnQuery model)
     {
         try
         {
-            // This endpoint is where users will be redirected after successful payment
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var uri = new Uri(model.RedirectUrl);
+            var queryCollection = HttpUtility.ParseQueryString(uri.Query);
+            var userId = queryCollection["uid"];
+            var paymentId = queryCollection["pid"];
+            var solutionId = queryCollection["sid"];
+
+            if(string.IsNullOrWhiteSpace(userId)
+                || string.IsNullOrWhiteSpace(paymentId)
+                || string.IsNullOrWhiteSpace(solutionId))
+            {
+                return BadRequest("One or more parameters are required.");
+            }
+
             // Retrieve the transaction status from your database
             var transaction = await _paymentTransaction.GetPaymentTransactionAsync(Guid.Parse(paymentId));
             if (transaction == null)
@@ -221,9 +274,43 @@ public class SolutionsController : ControllerBase
             }
             await _paymentTransaction.UpdateStatusAsync(transaction.Id, PaymentTransaction.EStatus.Complete);
 
+            // Retrieve solution and mark as sold
+            var solution = await _solutionRepository.GetSolutionAsync(Guid.Parse(solutionId));
+            if (solution == null)
+            {
+                _logger.LogError($"Solution: {solutionId} cannot be found!");
+                return NotFound("Solution not found");
+            }
+
+            try
+            {
+                // Send notification
+                var applicationUser = await _applicationUserRepository.GetApplicationUserAsync(userId);
+                var businessProfile = await _businessProfile.GetBusinessProfileAsync();
+                var solutionPurchaseSuccess = new SolutionPurchaseSuccess(applicationUser, businessProfile, DateTime.Now.AddDays(7));
+                // Render email HTML and send
+                var htmlBody = await _razorLightEmailRenderer.RenderEmailTemplateAsync(
+                    nameof(SolutionPurchaseSuccess),
+                    solutionPurchaseSuccess
+);
+                var emailResult = await _emailSender.SendEmailAsync(
+                    applicationUser.Email,
+                    "Your account has been deleted.",
+                    htmlBody
+                );
+
+                if (!emailResult.Succeeded)
+                {
+                    _logger.LogError("Error sending Account Registration Email.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+
             // Redirect to your frontend success page with relevant information
-            string returnUrl = $"{Request.Headers.Origin}/solutions/purchase/{transaction.Id}/success)";
-            return Redirect(returnUrl);
+            return Redirect(model.RedirectUrl);
         }
         catch (Exception ex)
         {
@@ -234,12 +321,19 @@ public class SolutionsController : ControllerBase
 
 
     [HttpGet("purchase/cancel")]
-    public async Task<IActionResult> PurchaseCancel([FromQuery] string paymentId)
+    public async Task<IActionResult> PurchaseCancel([FromQuery] string redirectUrl)
     {
         try
         {
-            // This endpoint is where users will be redirected if they cancel the payment
-            // Update the transaction status if needed
+            var uri = new Uri(redirectUrl);
+            var queryCollection = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var paymentId = queryCollection["pid"];
+
+            if (string.IsNullOrWhiteSpace(paymentId))
+            {
+                return BadRequest("Invalid query parameters.");
+            }
+
             var transaction = await _paymentTransaction.GetPaymentTransactionAsync(Guid.Parse(paymentId));
             if (transaction == null)
             {
@@ -493,4 +587,31 @@ public class SolutionsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+
+    [HttpGet("{id}/download")]
+    public async Task<IActionResult> DownloadSolution([FromRoute] Guid id)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var result = await _solutionRepository.DownloadSolutionZipAsync(id);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            var file = result.Response;
+
+            return File(file.Content, file.ContentType, file.FileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return StatusCode(500, ex.Message);
+        }
+    }
+
 }

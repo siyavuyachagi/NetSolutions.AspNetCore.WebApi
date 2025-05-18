@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                await _context.BusinessServices.Where(x => x.Id == Id).ExecuteDeleteAsync();
+                await _context.Feedbacks.Where(x => x.Id == Id).ExecuteDeleteAsync();
                 return Result.Success();
             }
             catch (Exception ex)

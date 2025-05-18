@@ -89,6 +89,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<BusinessServicePackage> BusinessServicePackages { get; set; }
 
     public DbSet<Client> Clients { get; set; }
+    public DbSet<CodeHost> CodeHosts { get; set; }
 
     public DbSet<FileMetadata> FileMetadatas { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }

@@ -12,12 +12,12 @@ namespace API.Controllers
     {
         private readonly IEmailSender _emailSender;
         private readonly ILogger<EmailsController> _logger;
-        private readonly IBusinessProfileRepository _businessProfileRepository;
+        private readonly IBusinessProfile _businessProfileRepository;
 
         public EmailsController(
             IEmailSender emailSender,
             ILogger<EmailsController> logger,
-            IBusinessProfileRepository businessProfileRepository)
+            IBusinessProfile businessProfileRepository)
         {
             _emailSender = emailSender;
             _logger = logger;
@@ -52,7 +52,7 @@ namespace API.Controllers
                     _logger.LogError("Error sending email");
                 }
 
-                return Ok(Result.Success("Message sent successfully."));
+                return Ok("Message sent successfully.");
             }
             catch (Exception ex)
             {

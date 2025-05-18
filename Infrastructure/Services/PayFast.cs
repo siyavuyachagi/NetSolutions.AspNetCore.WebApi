@@ -131,16 +131,6 @@ namespace Infrastructure.Services
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
-
-        private static string ConvertToFormUrlEncoded(object obj)
-        {
-            var properties = obj.GetType().GetProperties()
-                .Where(p => p.GetValue(obj) != null)
-                .Select(p => $"{WebUtility.UrlEncode(p.Name)}={WebUtility.UrlEncode(p.GetValue(obj)?.ToString())}");
-
-            return string.Join("&", properties);
-        }
-
         public async Task<Result<string>> SubscribeAsync(PayFastSubscriptionRequest request, IPayFast.Environment environment = IPayFast.Environment.Live)
         {
             throw new NotImplementedException();

@@ -12,6 +12,7 @@ namespace Infrastructure.TestData
         public static List<BusinessService> BusinessServices { get; set; } = new List<BusinessService>();
         public static List<BusinessServicePackage> BusinessServicePackages { get; set; } = new List<BusinessServicePackage>();
         public static List<BusinessServicePackageFeature> BusinessServicePackageFeatures { get; set; } = new List<BusinessServicePackageFeature>();
+        public static List<BusinessService_FileMetadata_Images> BusinessService_FileMetadata_Images { get; set; } = new List<BusinessService_FileMetadata_Images>();
         public static List<BusinessService_Testimonial> BusinessService_Testimonials { get; set; } = new List<BusinessService_Testimonial>();
         public static List<Organization> Organizations { get; set; } = new List<Organization>();
         public static List<IdentityRole> IdentityRoles { get; set; } = new List<IdentityRole>();
