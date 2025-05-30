@@ -65,21 +65,6 @@
 - **Containerization:** Docker
 - **Orchestration (Optional):** Kubernetes
 
-## 📡 API Endpoints
-
-| Endpoint                   | Method | Description                           | Authentication |
-|----------------------------|--------|---------------------------------------|----------------|
-| `/api/auth/login`          | POST   | Authenticate user and return JWT     | No             |
-| `/api/auth/register`       | POST   | Register a new user                  | No             |
-| `/api/auth/logout`         | POST   | Logout and invalidate session        | Yes            |
-| `/api/users/{id}`          | GET    | Retrieve user profile                | Yes            |
-| `/api/users/update`        | PUT    | Update user profile                  | Yes            |
-| `/api/projects`            | GET    | Get all projects                     | Yes            |
-| `/api/projects/{id}`       | GET    | Get a single project                 | Yes            |
-| `/api/projects/create`     | POST   | Create a new project                 | Yes (Admin)    |
-| `/api/documents/upload`    | POST   | Upload a document                    | Yes            |
-| `/api/notifications`       | GET    | Fetch notifications                  | Yes            |
-
 ## 🛠 Development Setup
 
 ### Prerequisites
